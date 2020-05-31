@@ -41,8 +41,18 @@ start:
 
     ; Load stage 2
     call loadStage2
+    cmp ah, 0
+    jne .errorLoading
+
+    ; Jump to bootloader
+    jmp 0x0000:0x7E00
 
     ; Hang (execution should never get here though)
+    jmp hang
+
+; Called if stage 2 can't be loaded
+.errorLoading:
+    mov eax, 0xDEADDEAD
     jmp hang
 
 ; Enable textmode
@@ -59,7 +69,8 @@ loadStage2:
     ; DL should have the drive index, which is already set for us by the boot sequence
     mov ah, 0x42            ; AH = function number (0x42 = "extended read")
     mov si, DAP             ; DS:SI = pointer to DAP (structure containing data for interrupt)
-    int 0x42                ; Read data into buffer
+    int 0x13                ; Read data into buffer
+    ret
 
 DAP:
     db 0x10                 ; Size of the DAP (always 16)
