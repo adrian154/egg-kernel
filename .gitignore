@@ -1,0 +1,23 @@
+# EXEs, etc. (why would these be?)
+*.exe
+*.dll
+
+# Any object files/binaries that might find their way out of /build
+*.o
+*.bin
+
+# Disk images
+*.img
+
+# Bochs configs
+.bxrc
+
+# Etc.
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ethumbs.db
+Thumbs.db
+*.txt
