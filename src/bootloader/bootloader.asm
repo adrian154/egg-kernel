@@ -8,8 +8,13 @@ BITS 16
 ORG 0x7E00
 
 ; Defines
-MEMORY_MAP_OFFSET equ 0x8000        ; Offset at which the memory map will be loated
-NUM_MAP_ENTRIES_OFFSET equ 0x9000   ; Offset at which the number of memory map entries will be located
+MEMORY_MAP_OFFSET equ 0x8200        ; Offset at which the memory map will be loated
+NUM_MAP_ENTRIES_OFFSET equ 0x8300   ; Offset at which the number of memory map entries will be located
+
+KERNEL_SIZE_SECTORS equ 1
+KERNEL_LOAD_OFFSET equ 0x9000
+KERNEL_LOAD_SEGMENT equ 0x0000
+KERNEL_START_SECTOR equ 3
 
 ; Entry point
 start:
@@ -23,17 +28,36 @@ start:
 
     ; Get memory map
     call doE820
+    cmp ax, 0
+    jne .errorE820
 
     ; Enable A20 line
     call enableA20
     cmp ax, 1
     jne .errorA20
 
+    ; Load kernel
+    call loadKernel
+    cmp ax, 0
+    jne .errorLoad
+
+    ; Jump to kernel
+
     ; Hang just in case (execution should never get here though)
+    jmp hang
+
+.errorE820:
+    mov si, errorE820Str
+    call print
     jmp hang
 
 .errorA20:
     mov si, errorA20Str
+    call print
+    jmp hang
+
+.errorLoad:
+    mov si, errorLoadStr
     call print
     jmp hang
 
@@ -339,9 +363,52 @@ enableA20_fast:
 .done:
     ret
 
+; Load the kernel.
+loadKernel:
+
+    ; Make sure BIOS INT 0x13 extensions exist. If not, return error.
+    call checkBIOSExt
+    cmp ax, 1
+    jne .error
+
+    ; Read sectors from disk
+    mov ah, 0x42            ; AH = function number (0x42 = extended read)
+    mov dx, [diskNumber]       ; DL = disk number
+    mov si, .DAP            ; DS:SI = pointer to DAP
+    int 0x13
+    jc .error
+    mov ax, 0
+    ret
+
+.DAP:
+    db 0x10                 ; Size of DAP (16)
+    db 0                    ; Must be zero
+    dw KERNEL_SIZE_SECTORS  ; Number of sectors
+    dw KERNEL_LOAD_OFFSET   ; Offset at which the kernel will be loaded
+    dw KERNEL_LOAD_SEGMENT  ; Sector at which the kernel will be loaded
+    dq KERNEL_START_SECTOR  ; Sector at which the kernel starts
+
+.error:
+    mov ax, 1
+    ret
+
+; Check if BIOS INT 0x13 extensions are available
+checkBIOSExt:
+    mov ah, 0x41            ; AH = function number
+    mov dx, [diskNumber]       ; DL = disk number
+    mov bx, 0x55AA          ; BX = magic number
+    int 0x13
+    mov ax, 0
+    jc .done
+    mov ax, 1
+.done:
+    ret
+
 ; Strings
 welcomeMessage db "eggloader started!",13,10,0
+errorE820Str db "fatal: couldn't get memory map",13,10,0
 errorA20Str db "fatal: couldn't enable A20 line",13,10,0
+errorLoadStr db "fatal: couldn't load kernel",13,10,0
 
 ; Data
 diskNumber db 0             ; Disk number that the OS was booted from

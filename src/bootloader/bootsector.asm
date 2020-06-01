@@ -8,7 +8,7 @@ BITS 16
 ORG 0x7C00
 
 ; Some defines
-SECTORS_TO_LOAD equ 1
+SECTORS_TO_LOAD equ 2
 
 ; Set CS/IP by doing a far jump
 jmp 0x0000:start
