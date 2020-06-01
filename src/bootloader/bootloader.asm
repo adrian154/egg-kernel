@@ -8,13 +8,13 @@ BITS 16
 ORG 0x7E00
 
 ; Defines
-MEMORY_MAP_OFFSET equ 0x8200        ; Offset at which the memory map will be loated
-NUM_MAP_ENTRIES_OFFSET equ 0x8300   ; Offset at which the number of memory map entries will be located
+MEMORY_MAP_OFFSET equ 0x8600        ; Offset at which the memory map will be loated
+NUM_MAP_ENTRIES_OFFSET equ 0x8700   ; Offset at which the number of memory map entries will be located
 
 KERNEL_SIZE_SECTORS equ 1
 KERNEL_LOAD_OFFSET equ 0x9000
 KERNEL_LOAD_SEGMENT equ 0x0000
-KERNEL_START_SECTOR equ 3
+KERNEL_START_SECTOR equ 4
 
 ; Entry point
 start:
@@ -42,6 +42,7 @@ start:
     jne .errorLoad
 
     ; Jump to kernel
+    call startKernel
 
     ; Hang just in case (execution should never get here though)
     jmp hang
@@ -57,8 +58,8 @@ start:
     jmp hang
 
 .errorLoad:
-    mov si, errorLoadStr
-    call print
+    ;mov si, errorLoadStr
+    ;call print
     jmp hang
 
 ; Print a string via BIOS interrupts
@@ -404,6 +405,71 @@ checkBIOSExt:
 .done:
     ret
 
+; Start the kernel
+startKernel:
+
+    cli
+
+    ; Set up GDT first. This is important.
+    lgdt [GDTPointer]
+
+    ; Set PM bit in CR0
+    mov eax, cr0
+    or eax, 0x1
+    mov cr0, eax
+
+    ; Load segment registers
+    mov ax, DATA_SEG
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+
+    ; Jump to kernel
+    jmp CODE_SEG:kernelStub
+
+    ret
+
+; GDT structures
+GDTStart:
+
+; First entry in the GDT must be null and is ignored.
+GDTNullEntry:
+    dq 0x0
+
+; Limit=0xFFFFF [x4096 = 0xFFFFFFFF (4G)]
+; Base=0x00000000
+; Access: Present=1, RingLevel=0, Executable=1, Direction=0, ReadWrite=1, Accessed=0
+; Flags: Granularity=1, Size=1, LimitHigh=1111 (0xF)
+GDTCodeEntry:
+    dw 0xFFFF
+    dw 0x0
+    db 0x0
+    db 10011010b
+    db 11001111b
+    db 0x0
+
+; Identical to GDT data entry, except access is different
+GDTDataEntry:
+    dw 0xFFFF
+    dw 0x0
+    db 0x0
+    db 10010010b
+    db 11001111b
+    db 0x0
+
+; End of the GDT
+GDTEnd:
+
+; Structure that points to the GDT
+GDTPointer:
+    dw GDTEnd - GDTStart
+    dd GDTStart
+
+CODE_SEG equ GDTCodeEntry - GDTStart
+DATA_SEG equ GDTDataEntry - GDTStart
+
 ; Strings
 welcomeMessage db "eggloader started!",13,10,0
 errorE820Str db "fatal: couldn't get memory map",13,10,0
@@ -412,3 +478,33 @@ errorLoadStr db "fatal: couldn't load kernel",13,10,0
 
 ; Data
 diskNumber db 0             ; Disk number that the OS was booted from
+
+; Pad with zeroes.
+TIMES 1024-($-$$) db 0
+
+;------------------------------------------------------------------------------;
+
+; Stub that copies protected-mode kernel to 1M and jumps to it
+
+BITS 32
+kernelStub:
+
+    ; Copy kernel to 1M
+    xor eax, eax
+    mov esi, 0x100000
+
+.loop:
+    cmp eax, KERNEL_SIZE_SECTORS * 512
+    je .done
+    mov ebx, [eax + KERNEL_LOAD_OFFSET]
+    mov [esi], ebx
+    add esi, 4
+    add eax, 4
+    jmp .loop
+.done:
+    jmp 0x100000
+
+.hang:
+    cli
+    hlt
+    jmp .hang
