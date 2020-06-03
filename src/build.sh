@@ -1,5 +1,10 @@
-# Clean up builds first
+# Clean up builds first and check if build and images directories exist (if not, create them)
+if [ ! -d "../build" ] || [ ! -d "../images" ]; then
+mkdir ../build
+mkdir ../images
+else
 ./clean.sh
+fi
 
 export OBJECT_FILES="../build/init.o ../build/main.o ../build/ioport.o ../build/terminal.o"
 export CFLAGS="-ffreestanding -Wall -Wextra -std=gnu11 -O2"
