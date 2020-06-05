@@ -37,6 +37,9 @@ struct GDTDescriptor {
 #define GDT_FLAGS_BYTE_GRANULARITY  0b00000000
 #define GDT_FLAGS_4K_GRANULARITY    0b10000000
 
+#define GDT_CODE_SELECTOR           0x08
+#define GDT_DATA_SELECTOR           0x10
+
 // See gdt.c for more info on globals
 #define NUM_GDT_ENTRIES 3
 
@@ -44,5 +47,6 @@ extern struct GDTEntry GDT[NUM_GDT_ENTRIES];
 extern struct GDTDescriptor GDTPointer;
 
 extern void installGDT();
+extern void setupGDT();
 
 #endif
