@@ -8,7 +8,8 @@ void cmain(uint32_t kernelPhysicalStart, uint32_t kernelPhysicalEnd) {
     
     print("egg kernel started\n");
 
-    //installGDT();
+    setupGDT();
+    print("GDT setup was successful\n");
 
     // infinite loop so CPU doesn't go crazy
     for(;;);

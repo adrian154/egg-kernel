@@ -1,4 +1,5 @@
 #include "gdt.h"
+#include "terminal.h"
 
 // Set up another GDT in C since it's more convenient
 // Segmentation is deprecated anyways
