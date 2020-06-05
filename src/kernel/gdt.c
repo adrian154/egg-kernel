@@ -7,7 +7,7 @@
 // 5 GDT entries:
 // 1 null entry (required)
 // 2 ring 0 entries (code/data segment)
-struct GDTEntry GDT[3];
+struct GDTEntry GDT[NUM_GDT_ENTRIES];
 struct GDTDescriptor GDTPointer;
 
 // Add entry to GDT

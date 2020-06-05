@@ -24,14 +24,6 @@
 #define TERMINAL_COLOR_YELLOW 14
 #define TERINAL_COLOR_WHITE 15
 
-inline uint8_t makeColor(uint8_t foreground, uint8_t background) {
-    return background << 4 | foreground;
-}
-
-inline uint16_t makeTextElement(char character, uint8_t color) {
-    return ((uint16_t)color) << 8 | character;
-}
-
 extern void moveCursor(unsigned int x, unsigned int y);
 extern void enableCursor();
 extern void disableCursor();
@@ -41,5 +33,37 @@ extern void clearTerminal();
 extern void setChar(unsigned int x, unsigned int y, char character, uint8_t color);
 extern void putChar(char character);
 extern void print(const char *string);
+
+static inline uint8_t makeColor(uint8_t foreground, uint8_t background) {
+    return background << 4 | foreground;
+}
+ 
+static inline uint16_t makeTextElement(char character, uint8_t color) {
+    return ((uint16_t)color) << 8 | character;
+}
+
+static inline void printHexDigit(uint8_t digit) {
+    putChar(digit < 0xA ? (digit + '0') : ((digit - 0xA) + 'A'));
+}
+
+static inline void printHexByte(uint8_t val) {
+    printHexDigit(val >> 4);
+    printHexDigit(val & 0x0F);
+}
+
+static inline void printHexShort(uint16_t val) {
+    printHexByte(val >> 8);
+    printHexByte(val & 0xFF);
+}
+
+static inline void printHexInt(uint32_t val) {
+    printHexShort(val >> 16);
+    printHexShort(val & 0xFFFF);
+}
+
+static inline void printHexLong(uint64_t val) {
+    printHexInt(val >> 32);
+    printHexInt(val & 0xFFFFFFFF);
+}
 
 #endif
