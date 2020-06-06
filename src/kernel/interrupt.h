@@ -3,11 +3,11 @@
 
 // Inlined asm functions, since inline assembly is evil and should be avoided at all costs
 static inline void disableInterrupts() {
-    asm("cli");
+    __asm__ __volatile__ ("cli");
 }
 
 static inline void enableInterrupts() {
-    asm("sti");
+    __asm__ __volatile__ ("sti");
 }
 
 #endif

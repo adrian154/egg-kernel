@@ -32,5 +32,6 @@ extern struct IDTDescriptor IDTPointer;
 
 extern void installIDT();
 extern void setupIDT();
+extern void addIDTEntry(int index, uint32_t offset, uint16_t selector, uint8_t flags);
 
 #endif
