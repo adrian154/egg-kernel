@@ -167,9 +167,6 @@ isr31:
     jmp commonExceptionHandler
 
 commonExceptionHandler:
-    iret
-
-commonExceptionHandler2:
     
     pusha
 

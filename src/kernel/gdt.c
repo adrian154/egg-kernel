@@ -36,7 +36,7 @@ void setupGDT() {
     // The size field in the GDT descriptor is subtracted by 1
     // This is because a uint16_t can only store 0..65535 but the max size of a GDT is 65536
     GDTPointer.offset = (uint32_t)&GDT;
-    GDTPointer.size = sizeof(struct GDTEntry) * 5 - 1;
+    GDTPointer.size = sizeof(struct GDTEntry) * NUM_GDT_ENTRIES - 1;
 
     // First, the null descriptor
     addGDTEntry(0, 0, 0, 0, 0);
