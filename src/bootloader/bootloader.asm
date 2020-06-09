@@ -8,13 +8,13 @@ BITS 16
 ORG 0x7E00
 
 ; Defines
-MEMORY_MAP_OFFSET equ 0x8600        ; Offset at which the memory map will be loated
-NUM_MAP_ENTRIES_OFFSET equ 0x8700   ; Offset at which the number of memory map entries will be located
+MEMORY_MAP_OFFSET equ 0x8200        ; Offset at which the memory map will be loated
+NUM_MAP_ENTRIES_OFFSET equ 0x83FE   ; Offset at which the number of memory map entries will be located
 
 KERNEL_SIZE_SECTORS equ 21
-KERNEL_LOAD_OFFSET equ 0x9000
+KERNEL_LOAD_OFFSET equ 0x8400
 KERNEL_LOAD_SEGMENT equ 0x0000
-KERNEL_START_SECTOR equ 4
+KERNEL_START_SECTOR equ 3
 
 ; Entry point
 start:
@@ -58,8 +58,8 @@ start:
     jmp hang
 
 .errorLoad:
-    ;mov si, errorLoadStr
-    ;call print
+    mov si, errorLoadStr
+    call print
     jmp hang
 
 ; Print a string via BIOS interrupts
@@ -470,18 +470,6 @@ GDTPointer:
 CODE_SEG equ GDTCodeEntry - GDTStart
 DATA_SEG equ GDTDataEntry - GDTStart
 
-; Strings
-welcomeMessage db "eggloader started!",13,10,0
-errorE820Str db "fatal: couldn't get memory map",13,10,0
-errorA20Str db "fatal: couldn't enable A20 line",13,10,0
-errorLoadStr db "fatal: couldn't load kernel",13,10,0
-
-; Data
-diskNumber db 0             ; Disk number that the OS was booted from
-
-; Pad with zeroes.
-TIMES 1024-($-$$) db 0
-
 ;------------------------------------------------------------------------------;
 
 ; Stub that copies protected-mode kernel to 1M and jumps to it
@@ -508,3 +496,12 @@ kernelStub:
     cli
     hlt
     jmp .hang
+
+; Strings
+welcomeMessage db "eggloader started!",13,10,0
+errorE820Str db "fatal: couldn't get memory map",13,10,0
+errorA20Str db "fatal: couldn't enable A20 line",13,10,0
+errorLoadStr db "fatal: couldn't load kernel",13,10,0
+
+; Data
+diskNumber db 0             ; Disk number that the OS was booted from

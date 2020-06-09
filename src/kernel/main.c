@@ -6,6 +6,10 @@
 #include "interrupt.h"
 #include "irq.h"
 
+void testHandler(struct IRQFrame *frame) {
+    print("Hello Worl");
+}
+
 void cmain(uint32_t kernelPhysicalStart, uint32_t kernelPhysicalEnd) {
     
     disableInterrupts();
@@ -28,7 +32,7 @@ void cmain(uint32_t kernelPhysicalStart, uint32_t kernelPhysicalEnd) {
 
     // Ready to enable interrupts at this point
     enableInterrupts();
-    
+
     // infinite loop so CPU doesn't start executing junk
     for(;;) {
         __asm__ ("hlt");

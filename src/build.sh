@@ -37,7 +37,7 @@ i686-elf-gcc -T ./kernel/linker.ld -o ../build/kernel.bin $LDFLAGS $OBJECT_FILES
 # Write binaries to disk image
 dd if=../build/bootsector.bin of=../images/disk.hdd
 dd if=../build/bootloader.bin of=../images/disk.hdd seek=1 bs=512
-dd if=../build/kernel.bin of=../images/disk.hdd seek=4 bs=512
+dd if=../build/kernel.bin of=../images/disk.hdd seek=3 bs=512
 
 # Make a copy of the disk image so it can be viewed while QEMU is running
 cp ../images/disk.hdd ../images/disk_copy.hdd
