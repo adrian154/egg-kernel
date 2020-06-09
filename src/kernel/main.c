@@ -4,6 +4,7 @@
 #include "idt.h"
 #include "exception.h"
 #include "interrupt.h"
+#include "irq.h"
 
 void cmain(uint32_t kernelPhysicalStart, uint32_t kernelPhysicalEnd) {
     
@@ -21,6 +22,9 @@ void cmain(uint32_t kernelPhysicalStart, uint32_t kernelPhysicalEnd) {
 
     setupExceptionHandlers();
     print("Exception handler setup was successful\n");
+
+    setupIRQs();
+    print("IRQ handler setup was successful\n");
 
     // Ready to enable interrupts at this point
     enableInterrupts();

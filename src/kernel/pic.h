@@ -25,4 +25,6 @@
 // NB: ICW1 has some bitfields in it, but none of them are particularly relevant
 // (Neither are any of the other bitfields, really)
 
+extern void remapPIC(uint8_t masterOffset, uint8_t slaveOffset);
+
 #endif

@@ -6,8 +6,8 @@ else
 ./clean.sh
 fi
 
-export OBJECT_FILES="../build/init.o ../build/main.o ../build/ioport.o ../build/terminal.o ../build/gdt.o ../build/gdt_asm.o ../build/idt_asm.o ../build/idt.o ../build/exception_asm.o ../build/exception.o"
-export CFLAGS="-ffreestanding -Wall -Wextra -Wpedantic -std=c11 -O2"
+export OBJECT_FILES="../build/init.o ../build/main.o ../build/ioport.o ../build/terminal.o ../build/gdt.o ../build/gdt_asm.o ../build/idt_asm.o ../build/idt.o ../build/exception_asm.o ../build/exception.o ../build/pic.o ../build/irq.o ../build/irq_asm.o"
+export CFLAGS="-ffreestanding -Wall -Wextra -std=gnu11 -O2"
 export LDFLAGS="-ffreestanding -nostdlib -lgcc -O2"
 
 # Assemble bootsector and bootloader
@@ -20,6 +20,7 @@ nasm -f elf ./kernel/ioport.asm -o ../build/ioport.o
 nasm -f elf ./kernel/gdt.asm -o ../build/gdt_asm.o -i./kernel/
 nasm -f elf ./kernel/idt.asm -o ../build/idt_asm.o
 nasm -f elf ./kernel/exception.asm -o ../build/exception_asm.o -i./kernel/
+nasm -f elf ./kernel/irq.asm -o ../build/irq_asm.o -i./kernel/
 
 # Compile C parts of kernel
 i686-elf-gcc -c ./kernel/main.c -o ../build/main.o $CFLAGS
@@ -27,6 +28,8 @@ i686-elf-gcc -c ./kernel/terminal.c -o ../build/terminal.o $CFLAGS
 i686-elf-gcc -c ./kernel/gdt.c -o ../build/gdt.o $CFLAGS
 i686-elf-gcc -c ./kernel/idt.c -o ../build/idt.o $CFLAGS
 i686-elf-gcc -c ./kernel/exception.c -o ../build/exception.o $CFLAGS
+i686-elf-gcc -c ./kernel/pic.c -o ../build/pic.o $CFLAGS
+i686-elf-gcc -c ./kernel/irq.c -o ../build/irq.o $CFLAGS
 
 # Link kernel
 i686-elf-gcc -T ./kernel/linker.ld -o ../build/kernel.bin $LDFLAGS $OBJECT_FILES

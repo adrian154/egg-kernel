@@ -1,4 +1,5 @@
 #include "pic.h"
+#include "ioport.h"
 
 void remapPIC(uint8_t masterOffset, uint8_t slaveOffset) {
 
