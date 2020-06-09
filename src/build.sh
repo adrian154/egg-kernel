@@ -7,7 +7,7 @@ else
 fi
 
 export OBJECT_FILES="../build/init.o ../build/main.o ../build/ioport.o ../build/terminal.o ../build/gdt.o ../build/gdt_asm.o ../build/idt_asm.o ../build/idt.o ../build/exception_asm.o ../build/exception.o"
-export CFLAGS="-ffreestanding -Wall -Wextra -std=c11 -O2"
+export CFLAGS="-ffreestanding -Wall -Wextra -Wpedantic -std=c11 -O2"
 export LDFLAGS="-ffreestanding -nostdlib -lgcc -O2"
 
 # Assemble bootsector and bootloader

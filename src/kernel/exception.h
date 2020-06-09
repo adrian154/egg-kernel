@@ -5,12 +5,12 @@
 
 // Data on the stack before C exception handler starts working
 struct ExceptionFrame {
-    uint32_t DS, ES, FS, GS;                                // Also pushed
-    uint32_t EDI, ESI, EBP, kernelESP, EBX, EDX, ECX, EAX;  // Pushed by PUSHA in common exception handler 
-    uint32_t interruptNumber, errorCode;                    // Pushed by exception handlers
-    uint32_t EFLAGS, CS, EIP;                               // Pushed by processor automagically
-    uint32_t userSS, userESP;                               // Might be pushed if the interrupted code was usermode; only access if you know this for certain! 
-};
+    uint32_t DS, ES, FS, GS;                                        // Also pushed
+    uint32_t EDI, ESI, kernelEBP, kernelESP, EBX, EDX, ECX, EAX;    // Pushed by PUSHA in common exception handler 
+    uint32_t interruptNumber, errorCode;                            // Pushed by exception handlers
+    uint32_t EFLAGS, CS, EIP;                                       // Pushed by processor automagically
+    uint32_t userSS, userESP;                                       // Might be pushed if the interrupted code was usermode; only access if you know this for certain! 
+}__attribute__((packed));
 
 // Interrupt handlers declared in exception.asm
 extern void isr0();

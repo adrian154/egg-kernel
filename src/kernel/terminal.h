@@ -34,6 +34,8 @@ extern void setChar(unsigned int x, unsigned int y, char character, uint8_t colo
 extern void putChar(char character);
 extern void print(const char *string);
 
+extern uint8_t terminalColor;
+
 static inline uint8_t makeColor(uint8_t foreground, uint8_t background) {
     return background << 4 | foreground;
 }

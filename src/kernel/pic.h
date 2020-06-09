@@ -22,4 +22,7 @@
 #define PIC_ICW4_BUFFERED_MASTER    0b00001100      // Buffered mode for master (default: non-buffered)
 #define PIC_ICW4_SFNM               0b00010000      // "Special fully nested mode" (default: unspecial fully nested mode)
 
+// NB: ICW1 has some bitfields in it, but none of them are particularly relevant
+// (Neither are any of the other bitfields, really)
+
 #endif

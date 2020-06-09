@@ -7,6 +7,8 @@
 
 void cmain(uint32_t kernelPhysicalStart, uint32_t kernelPhysicalEnd) {
     
+    disableInterrupts();
+
     initTerminal();
     
     print("egg kernel started\n");
@@ -21,10 +23,11 @@ void cmain(uint32_t kernelPhysicalStart, uint32_t kernelPhysicalEnd) {
     print("Exception handler setup was successful\n");
 
     // Ready to enable interrupts at this point
-    //volatile int test = 1/0;
-    //enableInterrupts();
+    enableInterrupts();
     
     // infinite loop so CPU doesn't start executing junk
-    for(;;);
+    for(;;) {
+        __asm__ ("hlt");
+    }
 
 }

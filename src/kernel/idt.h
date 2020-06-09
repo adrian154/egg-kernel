@@ -8,7 +8,8 @@
 struct IDTEntry {
     uint16_t offsetLow;         // lower 16 bits of interrupt handler offset
     uint16_t segmentSelector;   // segment selector
-    uint16_t flags;             // flags - type, other info about gate
+    uint8_t zero;               // unused fields
+    uint8_t flags;              // flags - type, other info about gate
     uint16_t offsetHigh;        // upper 16 bits of offset 
 }__attribute__((packed));
 

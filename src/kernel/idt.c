@@ -8,6 +8,7 @@ void addIDTEntry(int index, uint32_t offset, uint16_t selector, uint8_t flags) {
 
     // Code is largely self explanatory - populate IDT entry with relevant fields
     IDT[index].flags = flags;
+    IDT[index].zero = 0;
     IDT[index].offsetHigh = offset >> 16;
     IDT[index].offsetLow = offset & 0xFFFF;
     IDT[index].segmentSelector = selector;

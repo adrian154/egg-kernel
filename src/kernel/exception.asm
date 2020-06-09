@@ -45,8 +45,8 @@ GLOBAL isr31
 ; We also push the exception number so all exceptions can be directed to one generic handler in C
 
 isr0:
-    push DWORD 0
-    push DWORD 0
+    push BYTE 0
+    push BYTE 0
     jmp commonExceptionHandler
 isr1:
     push DWORD 0
@@ -193,6 +193,9 @@ commonExceptionHandler:
     ; Not sure why this is necessary, but most code seems to do this...
     mov eax, exceptionHandler
     call eax
+
+    ; Restore eax
+    pop eax
 
     ; Restore state
     pop gs
