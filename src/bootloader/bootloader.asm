@@ -9,9 +9,8 @@ ORG 0x7E00
 
 ; Defines
 MEMORY_MAP_OFFSET equ 0x8200        ; Offset at which the memory map will be loated
-NUM_MAP_ENTRIES_OFFSET equ 0x83FE   ; Offset at which the number of memory map entries will be located
 
-KERNEL_SIZE_SECTORS equ 21
+KERNEL_SIZE_SECTORS equ 26
 KERNEL_LOAD_OFFSET equ 0x8400
 KERNEL_LOAD_SEGMENT equ 0x0000
 KERNEL_START_SECTOR equ 3
@@ -180,7 +179,8 @@ doE820:
     ; Return 0 for success
     ; Write number of memory map entries to a fixed offset so it can be read by the kernel
     mov ax, 0
-    mov [NUM_MAP_ENTRIES_OFFSET], bp
+    mov [numMMAPEntries], bp
+    mov [MMAPPointer], DWORD MEMORY_MAP_OFFSET
     clc
     ret
 
@@ -490,6 +490,10 @@ kernelStub:
     add eax, 4
     jmp .loop
 .done:
+
+    ; Save environmentData struct on stack
+    push DWORD environmentData
+
     jmp 0x100000
 
 .hang:
@@ -503,5 +507,8 @@ errorE820Str db "fatal: couldn't get memory map",13,10,0
 errorA20Str db "fatal: couldn't enable A20 line",13,10,0
 errorLoadStr db "fatal: couldn't load kernel",13,10,0
 
-; Data
+; Data passed to the kernel
+environmentData:
 diskNumber db 0             ; Disk number that the OS was booted from
+numMMAPEntries dw 0         ; Number of entries in memory map
+MMAPPointer dd 0            ; Pointer to memory map

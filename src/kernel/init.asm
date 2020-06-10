@@ -14,13 +14,17 @@ EXTERN kernelPhysicalEnd
 
 start:
 
+    ; Pop environmentData (see bootloader.asm) off old stack
+    pop eax
+
     ; Set up a stack for the kernel
     mov ebp, stack_bottom
     mov esp, stack_top
 
     push kernelPhysicalEnd
     push kernelPhysicalStart
-
+    push eax
+    
     ; Call kernel
     call cmain
 

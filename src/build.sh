@@ -6,7 +6,7 @@ else
 ./clean.sh
 fi
 
-export OBJECT_FILES="../build/init.o ../build/main.o ../build/ioport.o ../build/terminal.o ../build/gdt.o ../build/gdt_asm.o ../build/idt_asm.o ../build/idt.o ../build/exception_asm.o ../build/exception.o ../build/pic.o ../build/irq.o ../build/irq_asm.o"
+export OBJECT_FILES="../build/init.o ../build/main.o ../build/ioport.o ../build/terminal.o ../build/gdt.o ../build/gdt_asm.o ../build/idt_asm.o ../build/idt.o ../build/exception_asm.o ../build/exception.o ../build/pic.o ../build/irq.o ../build/irq_asm.o ../build/physalloc.o"
 export CFLAGS="-ffreestanding -Wall -Wextra -std=gnu11 -O2"
 export LDFLAGS="-ffreestanding -nostdlib -lgcc -O2"
 
@@ -30,6 +30,7 @@ i686-elf-gcc -c ./kernel/idt.c -o ../build/idt.o $CFLAGS
 i686-elf-gcc -c ./kernel/exception.c -o ../build/exception.o $CFLAGS
 i686-elf-gcc -c ./kernel/pic.c -o ../build/pic.o $CFLAGS
 i686-elf-gcc -c ./kernel/irq.c -o ../build/irq.o $CFLAGS
+i686-elf-gcc -c ./kernel/physalloc.c -o ../build/physalloc.o $CFLAGS
 
 # Link kernel
 i686-elf-gcc -T ./kernel/linker.ld -o ../build/kernel.bin $LDFLAGS $OBJECT_FILES
