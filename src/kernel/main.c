@@ -9,10 +9,6 @@
 #include "mmap.h"
 #include "physalloc.h"
 
-void testHandler(struct IRQFrame *frame) {
-    print("Hello Worl");
-}
-
 void cmain(struct EnvironmentData *envData, uint32_t kernelPhysicalStart, uint32_t kernelPhysicalEnd) {
     
     // Fill in some fields in envData
@@ -49,6 +45,37 @@ void cmain(struct EnvironmentData *envData, uint32_t kernelPhysicalStart, uint32
     } 
 
     setupPhysicalAlloc(envData);
+
+    void *pg1 = allocPage();
+    printHexInt(pg1);
+    putChar('\n');
+
+    void *pg2 = allocPage();
+    printHexInt(pg2);
+    putChar('\n');
+
+    void *pg3 = allocPage();
+    printHexInt(pg3);
+    putChar('\n');
+
+    void *pg4 = allocPage();
+    printHexInt(pg4);
+    putChar('\n');
+
+    void *pg5 = allocPage();
+    printHexInt(pg5);
+    putChar('\n');
+
+    freePage(pg3);
+    freePage(pg4);
+
+    void *pg6 = allocPage();
+    printHexInt(pg6);
+    putChar('\n');
+
+    void *pg7 = allocPage();
+    printHexInt(pg7);
+    putChar('\n');
 
     // infinite loop so CPU doesn't start executing junk
     for(;;) {

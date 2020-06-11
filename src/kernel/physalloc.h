@@ -5,5 +5,7 @@
 #include "init.h"
 
 extern void setupPhysicalAlloc(struct EnvironmentData *envData);
+extern void *allocPage();
+extern void freePage(void *page);
 
 #endif
