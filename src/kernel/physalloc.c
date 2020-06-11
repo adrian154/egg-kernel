@@ -71,8 +71,8 @@ void setupPhysicalAlloc(struct EnvironmentData *envData) {
             }
 
             // Ignore partially free pages at the end of each region
-            uint32_t startPage = !(base32 & 0xFFF) ? (base32 >> 12) : (base32 >> 12) + 1;
-            uint32_t endPage = limit32 >> 12;       // Truncates any extra memory
+            uint32_t startPage = ~(base32 & 0xFFF) ? (base32 >> 12) : (base32 >> 12) + 1;
+            uint32_t endPage = limit32 >> 12;
             
             print("startpage="); printHexInt(startPage); print(", endpage="); printHexInt(endPage); putChar('\n');
 
