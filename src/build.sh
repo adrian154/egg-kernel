@@ -1,11 +1,3 @@
-# Clean up builds first and check if build and images directories exist (if not, create them)
-if [ ! -d "../build" ] || [ ! -d "../images" ]; then
-mkdir ../build
-mkdir ../images
-else
-./clean.sh
-fi
-
 export OBJECT_FILES="../build/init.o ../build/main.o ../build/ioport.o ../build/terminal.o ../build/gdt.o ../build/gdt_asm.o ../build/idt_asm.o ../build/idt.o ../build/exception_asm.o ../build/exception.o ../build/pic.o ../build/irq.o ../build/irq_asm.o ../build/physalloc.o"
 export CFLAGS="-ffreestanding -Wall -Wextra -std=gnu11 -O2"
 export LDFLAGS="-ffreestanding -nostdlib -lgcc -O2"

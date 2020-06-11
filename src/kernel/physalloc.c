@@ -10,6 +10,7 @@ uint32_t *pageBitmap;
 // size of the page bitmap in uint32_t's (size in bytes = this x 4)
 size_t pageBitmapSizeU32;
 
+// Internal functions to manipulate page bitmap
 static inline void iFreePage(uint32_t pageNumber) {
     pageBitmap[pageNumber / 32] &= ~((uint32_t)1 << (pageNumber % 32));
 }
@@ -92,17 +93,21 @@ void *allocPage() {
         
         // Check if there are any free pages in the bitmap
         if(~pageBitmap[i] != 0) {
+
+            // Loop through bits, find free page
             for(int j = 0; j < 32; j++) {
                 if(!(pageBitmap[i] & ((uint32_t)1 << j))) {
                     iAllocPage(i * 32 + j);
                     return (void *)((i * 32 + j) * 4096);
                 }
             }
+
         }
 
     }
 
     // no pages left (out of memory!)
+    // this is very bad, replace with something else eventually
     return NULL;
 
 }

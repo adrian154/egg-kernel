@@ -8,12 +8,17 @@
 #include "init.h"
 #include "mmap.h"
 #include "physalloc.h"
+#include "string.h"
 
-void cmain(struct EnvironmentData *envData, uint32_t kernelPhysicalStart, uint32_t kernelPhysicalEnd) {
+void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uint32_t kernelPhysicalEnd) {
     
+    // Copy passed envData into a new envData on the stack since the old one is lying around in free memory that may be overwritten
+    struct EnvironmentData envData;
+    memcpy(envDataOld, &envData, sizeof(struct EnvironmentData));    
+
     // Fill in some fields in envData
-    envData->kernelPhysicalStart = kernelPhysicalStart;
-    envData->kernelPhysicalEnd = kernelPhysicalEnd;
+    envData.kernelPhysicalStart = kernelPhysicalStart;
+    envData.kernelPhysicalEnd = kernelPhysicalEnd;
 
     disableInterrupts();
 
@@ -38,44 +43,13 @@ void cmain(struct EnvironmentData *envData, uint32_t kernelPhysicalStart, uint32
     enableInterrupts();
 
     // Print memory map for debugging (generally useful)
-    struct MemoryMapEntry *mmap = (struct MemoryMapEntry *)envData->memoryMap;
-    for(int i = 0; i < envData->numMemoryMapEntries; i++) {
+    struct MemoryMapEntry *mmap = (struct MemoryMapEntry *)envData.memoryMap;
+    for(int i = 0; i < envData.numMemoryMapEntries; i++) {
         print("base=0x"); printHexLong(mmap->base); print(", length="); printHexLong(mmap->length); print(", type="); printHexByte(mmap->type); print(", ACPI=0x"); printHexByte(mmap->ACPIAttributes); putChar('\n');
         mmap += 1;
-    } 
+    }
 
-    setupPhysicalAlloc(envData);
-
-    void *pg1 = allocPage();
-    printHexInt(pg1);
-    putChar('\n');
-
-    void *pg2 = allocPage();
-    printHexInt(pg2);
-    putChar('\n');
-
-    void *pg3 = allocPage();
-    printHexInt(pg3);
-    putChar('\n');
-
-    void *pg4 = allocPage();
-    printHexInt(pg4);
-    putChar('\n');
-
-    void *pg5 = allocPage();
-    printHexInt(pg5);
-    putChar('\n');
-
-    freePage(pg3);
-    freePage(pg4);
-
-    void *pg6 = allocPage();
-    printHexInt(pg6);
-    putChar('\n');
-
-    void *pg7 = allocPage();
-    printHexInt(pg7);
-    putChar('\n');
+    setupPhysicalAlloc(&envData);
 
     // infinite loop so CPU doesn't start executing junk
     for(;;) {
