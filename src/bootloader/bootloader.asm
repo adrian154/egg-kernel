@@ -10,7 +10,7 @@ ORG 0x7E00
 ; Defines
 MEMORY_MAP_OFFSET equ 0x8200        ; Offset at which the memory map will be loated
 
-KERNEL_SIZE_SECTORS equ 26
+KERNEL_SIZE_SECTORS equ 48
 KERNEL_LOAD_OFFSET equ 0x8400
 KERNEL_LOAD_SEGMENT equ 0x0000
 KERNEL_START_SECTOR equ 3

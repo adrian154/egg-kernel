@@ -23,6 +23,7 @@ SECTIONS {
         *(.bss)
     }
 
+    /* Add padding to placate VirtualBox and bochs */
     .padding : {
         BYTE(0xAA);
         . = ALIGN(512);

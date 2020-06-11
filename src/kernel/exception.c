@@ -4,7 +4,7 @@
 #include "gdt.h"
 
 // Exception messages
-const char *exceptionMessages[] = {
+const char *exceptionMessages[32] = {
     "Division by Zero",
     "Debug Exception",
     "Non-Maskable Interrupt",
@@ -51,8 +51,35 @@ void exceptionHandler(struct ExceptionFrame *frame) {
     print("\nEBX="); printHexInt(frame->EBX); print(", EDX="); printHexInt(frame->EDX); print(", ECX="); printHexInt(frame->ECX); print(", EAX="); printHexInt(frame->EAX); 
     print("\nINT_NO="); printHexInt(frame->interruptNumber); print(", ERR_CODE="); printHexInt(frame->errorCode);
     print("\nEFLAGS="); printHexInt(frame->EFLAGS); print(", CS="); printHexInt(frame->CS); print(", EIP="); printHexInt(frame->EIP);
-    print("\nException name = "); print(exceptionMessages[frame->interruptNumber]);
+    print("\nUserSS="); printHexInt(frame->userSS); print(", UserESP="); printHexInt(frame->userESP);
+    print("\nexception name="); print(exceptionMessages[frame->interruptNumber]);
 
+    // Special handler for page faults
+    if(frame->interruptNumber == PAGE_FAULT_EXCEPTION) {
+
+        putChar('\n');
+
+        // debug: CR2 contains the virtual address of the illegal access
+        uint32_t addr;
+        __asm__ __volatile__("mov %%cr2, %0" : "=r" (addr) :: "eax");
+        
+        if(frame->errorCode & 0b100) {
+            print("user ");
+        } else {
+            print("kernel ");
+        }
+        if(frame->errorCode & 0b010) {
+            print("wrote to ");
+        } else {
+            print("read from ");
+        }
+        if(frame->errorCode & 0b001) {
+            print("a present page");
+        } else {
+            print("a non-present page");
+        }
+
+    }
 
     for(;;);
 

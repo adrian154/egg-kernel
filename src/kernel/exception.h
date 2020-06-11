@@ -3,6 +3,27 @@
 
 #include "kernel.h"
 
+#define DIVISION_BY_ZERO_EXCEPTION              0
+#define DEBUG_EXCEPTION                         1
+#define NON_MASKABLE_INTERRUPT_EXCEPTION        2
+#define BREAKPOINT_EXCEPTION                    3
+#define OVERFLOW_EXCEPTION                      4
+#define BOUND_RANGE_EXCEEDED_EXCEPTION          5
+#define INVALID_OPCODE_EXCEPTION                6
+#define DEVICE_NOT_AVAILABLE_EXCEPTION          7
+#define DOUBLE_FAULT_EXCEPTION                  8
+#define COPROCESSOR_SEGMENT_OVERRUN_EXCEPTION   9
+#define INVALID_TSS_EXCEPTION                   10
+#define SEGMENT_NOT_PRESENT_EXCEPTION           11
+#define STACK_SEGMENT_FAULT_EXCEPTION           12
+#define GENERAL_PROTECTION_FAULT_EXCEPTION      13
+#define PAGE_FAULT_EXCEPTION                    14
+#define FLOATING_POINT_EXCEPTION                16
+#define ALIGNMENT_CHECK_EXCEPTION               17
+#define MACHINE_CHECK_EXCEPTION                 18
+#define SIMD_FLOATING_POINT_EXCEPTION           19
+#define VIRTUALIZATION_EXCEPTION                20
+
 // Data on the stack before C exception handler starts working
 struct ExceptionFrame {
     uint32_t DS, ES, FS, GS;                                        // Also pushed

@@ -9,6 +9,7 @@
 #include "mmap.h"
 #include "physalloc.h"
 #include "string.h"
+#include "paging.h"
 
 void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uint32_t kernelPhysicalEnd) {
     
@@ -50,6 +51,10 @@ void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uin
     }
 
     setupPhysicalAlloc(&envData);
+    setupPaging();
+
+    int *test = 0x500000;
+    *test = 5;
 
     // infinite loop so CPU doesn't start executing junk
     for(;;) {
