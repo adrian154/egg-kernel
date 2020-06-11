@@ -70,20 +70,23 @@ void setupPhysicalAlloc(struct EnvironmentData *envData) {
                 limit32 = MAX_U32;
             }
 
-            // Ignore incomplete pages at the end of the region's range
-            // Sadly they are lost forever
-            uint32_t startPage = (base32 >> 12) + 1;  // Bit of a trick, loses a page of memory somtimes but oh well...
+            // Ignore partially free pages at the end of each region
+            uint32_t startPage = !(base32 & 0xFFF) ? (base32 >> 12) : (base32 >> 12) + 1;
             uint32_t endPage = limit32 >> 12;       // Truncates any extra memory
             
+            print("startpage="); printHexInt(startPage); print(", endpage="); printHexInt(endPage); putChar('\n');
+
             for(uint32_t j = startPage; j <= endPage; j++) {
                 iFreePage(j);
             }
 
         }
+
+        mmap++;
     }
 
     // mark pages occupied by kernel and the page bitmap as occupied
-    // (do later)
+    uint32_t start = (envData->kernelPhysicalStart >> 12) + 1;
 
 }
 
