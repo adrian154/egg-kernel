@@ -17,10 +17,14 @@ My attempt at writing a small kernel.
     * Preemptive multitasking
         * How many TSS's necessary?
         * Context switches
+        * Scheduling
+            * Round-robin seems OK for now
     * Usermode
         * Extra GDT's
         * Don't kill the entire system when a usermode exception happens
         * System calls
+    * ACPI, PCI
+        * Must read more, I know nothing
     * Actual filesystem support
         * Which?
             * echFS: easy, FUSE support, but may be slow
@@ -33,3 +37,6 @@ My attempt at writing a small kernel.
                 * very little support
                 * difficult to use
                 * BUT, high educational value
+    * Kernel module loading
+        * Have to write binary parser first
+        * Will probably use ELF format
