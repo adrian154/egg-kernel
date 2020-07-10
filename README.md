@@ -1,2 +1,2 @@
 # egg-kernel
-My attempt at writing a small kernel.
+egg-kernel is an x86 kernel written in C.
