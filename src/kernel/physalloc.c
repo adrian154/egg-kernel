@@ -87,6 +87,12 @@ void setupPhysicalAlloc(struct EnvironmentData *envData) {
 
     // mark pages occupied by kernel and the page bitmap as occupied
     uint32_t start = (envData->kernelPhysicalStart >> 12) + 1;
+    uint32_t end = (uint32_t)pageBitmap + pageBitmapSizeU32 * 4;
+    uint32_t startPage = ~(start & 0xFFF) ? (start >> 12) : (start >> 12) + 1;
+    uint32_t endPage = end >> 12;
+    for(uint32_t i = startPage; i <= endPage; i++) {
+        iAllocPage(i);
+    }
 
 }
 

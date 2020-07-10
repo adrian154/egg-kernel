@@ -62,7 +62,7 @@ void exceptionHandler(struct ExceptionFrame *frame) {
         // debug: CR2 contains the virtual address of the illegal access
         uint32_t addr;
         __asm__ __volatile__("mov %%cr2, %0" : "=r" (addr) :: "eax");
-        
+
         if(frame->errorCode & 0b100) {
             print("user ");
         } else {
@@ -78,6 +78,8 @@ void exceptionHandler(struct ExceptionFrame *frame) {
         } else {
             print("a non-present page");
         }
+
+        print(" at 0x"); printHexInt(addr);
 
     }
 

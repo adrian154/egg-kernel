@@ -23,3 +23,9 @@ void setupPaging() {
     enablePaging();
 
 }
+
+void mapPage(void *physical, void *logical, uint32_t pageAttributes) {
+
+    // todo
+
+}

@@ -17,6 +17,14 @@ void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uin
     struct EnvironmentData envData;
     memcpy(envDataOld, &envData, sizeof(struct EnvironmentData));    
 
+    // Do the same for the memory map since it too is in potentially free memory
+    // Unfortunately a VLA must be used here, but the stack size is known so it's fine
+    struct MemoryMapEntry newmmap[envData.numMemoryMapEntries];
+    memcpy(envData.memoryMap, newmmap, sizeof(struct MemoryMapEntry) * envData.numMemoryMapEntries);
+
+    // Update envdata entry, since the memory map has moved
+    envData.memoryMap = newmmap;
+
     // Fill in some fields in envData
     envData.kernelPhysicalStart = kernelPhysicalStart;
     envData.kernelPhysicalEnd = kernelPhysicalEnd;
@@ -44,17 +52,18 @@ void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uin
     enableInterrupts();
 
     // Print memory map for debugging (generally useful)
-    struct MemoryMapEntry *mmap = (struct MemoryMapEntry *)envData.memoryMap;
+    struct MemoryMapEntry *mmapEnt = envData.memoryMap;
     for(int i = 0; i < envData.numMemoryMapEntries; i++) {
-        print("base=0x"); printHexLong(mmap->base); print(", length="); printHexLong(mmap->length); print(", type="); printHexByte(mmap->type); print(", ACPI=0x"); printHexByte(mmap->ACPIAttributes); putChar('\n');
-        mmap += 1;
+        print("base=0x"); printHexLong(mmapEnt->base); print(", length="); printHexLong(mmapEnt->length); print(", type="); printHexByte(mmapEnt->type); print(", ACPI=0x"); printHexByte(mmapEnt->ACPIAttributes); putChar('\n');
+        mmapEnt += 1;
     }
 
+    // Set up paging!
     setupPhysicalAlloc(&envData);
     setupPaging();
 
-    int *test = 0x500000;
-    *test = 5;
+    int *ptr = (int *)0x500000;
+    *ptr = 5;
 
     // infinite loop so CPU doesn't start executing junk
     for(;;) {
