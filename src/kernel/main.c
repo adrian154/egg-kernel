@@ -63,9 +63,6 @@ void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uin
     setupPhysicalAlloc(&envData);
     setupPaging();
 
-    int *ptr = (int *)0x500000;
-    *ptr = 5;
-
     // infinite loop so CPU doesn't start executing junk
     for(;;) {
         __asm__ ("hlt");
