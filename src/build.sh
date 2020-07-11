@@ -1,4 +1,4 @@
-export OBJECT_FILES="../build/init.o ../build/main.o ../build/ioport.o ../build/terminal.o ../build/gdt.o ../build/gdt_asm.o ../build/idt_asm.o ../build/idt.o ../build/exception_asm.o ../build/exception.o ../build/pic.o ../build/irq.o ../build/irq_asm.o ../build/physalloc.o ../build/paging.o ../build/paging_asm.o"
+export OBJECT_FILES="../build/init.o ../build/main.o ../build/ioport.o ../build/terminal.o ../build/gdt.o ../build/gdt_asm.o ../build/idt_asm.o ../build/idt.o ../build/exception_asm.o ../build/exception.o ../build/pic.o ../build/irq.o ../build/irq_asm.o ../build/physalloc.o ../build/paging.o ../build/paging_asm.o ../build/virtalloc.o"
 export CFLAGS="-ffreestanding -Wall -Wextra -std=gnu11 -O2"
 export LDFLAGS="-ffreestanding -nostdlib -lgcc -O2"
 
@@ -25,6 +25,7 @@ i686-elf-gcc -c ./kernel/pic.c -o ../build/pic.o $CFLAGS
 i686-elf-gcc -c ./kernel/irq.c -o ../build/irq.o $CFLAGS
 i686-elf-gcc -c ./kernel/physalloc.c -o ../build/physalloc.o $CFLAGS
 i686-elf-gcc -c ./kernel/paging.c -o ../build/paging.o $CFLAGS
+i686-elf-gcc -c ./kernel/virtalloc.c -o ../build/virtalloc.o $CFLAGS
 
 # Link kernel
 i686-elf-gcc -T ./kernel/linker.ld -o ../build/kernel.bin $LDFLAGS $OBJECT_FILES

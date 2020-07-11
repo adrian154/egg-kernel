@@ -1,6 +1,8 @@
 #include "pic.h"
 #include "ioport.h"
 
+// Remap PICs so that IRQs don't coincide with exceptions (irq.c)
+
 void remapPIC(uint8_t masterOffset, uint8_t slaveOffset) {
 
     // configure master PIC

@@ -4,6 +4,7 @@
 #include "kernel.h"
 
 // NB: The kernel doesn't use task gates, so their existence is totally ignored.
+// This makes the IDT entry structures significantly simpler
 
 struct IDTEntry {
     uint16_t offsetLow;         // lower 16 bits of interrupt handler offset
@@ -18,6 +19,7 @@ struct IDTDescriptor {
     uint32_t offset;            // offset of the IDT in physical memory
 }__attribute__((packed));
 
+// Bitmasks to manipulate IDT fields
 #define IDT_ENTRY_PRESENT           0b10000000
 #define IDT_ENTRY_RING0             0b00000000
 #define IDT_ENTRY_RING1             0b00100000
@@ -28,6 +30,7 @@ struct IDTDescriptor {
 #define IDT_ENTRY_INTERRUPT_GATE    0b00000110
 #define IDT_ENTRY_TRAP_GATE         0b00000111
 
+// Our IDT occupies all 256 entries (idt.c)
 extern struct IDTEntry IDT[256];
 extern struct IDTDescriptor IDTPointer;
 

@@ -4,6 +4,9 @@
 #include "idt.h"
 #include "gdt.h"
 
+// The mainIRQHandler() is called when an IRQ occurs (irq.asm)
+// It dispatches the C IRQ handler for each of the 16 IRQs
+
 extern void irq0();
 extern void irq1();
 extern void irq2();
@@ -21,6 +24,8 @@ extern void irq13();
 extern void irq14();
 extern void irq15();
 
+// Array of function pointers for the IRQ handlers
+// NULL means the handler is not defined and will not be called
 IRQHandler IRQHandlers[16] = {
     NULL, NULL, NULL, NULL,
     NULL, NULL, NULL, NULL,
@@ -28,12 +33,14 @@ IRQHandler IRQHandlers[16] = {
     NULL, NULL, NULL, NULL,
 };
 
+// Sets an IRQ handler
 void setIRQHandler(int irq, IRQHandler handler) {
     IRQHandlers[irq] = handler;
 }
 
+// Removes an IRQ handler
 void clearIRQHandler(int irq) {
-    IRQHandlers[irq] = 0;
+    IRQHandlers[irq] = NULL;
 }
 
 void setupIRQs() {
@@ -61,6 +68,8 @@ void setupIRQs() {
 
 }
 
+// Called when an IRQ occurs (irq.asm)
+// Dispatches an IRQ-specific handler
 void mainIRQHandler(struct IRQFrame *frame) {
 
     IRQHandler handler = IRQHandlers[frame->interruptNumber - 32];

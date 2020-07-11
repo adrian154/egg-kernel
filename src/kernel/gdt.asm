@@ -1,12 +1,14 @@
 ; GDT code.
 
+; The GDT is created in C (gdt.c)
+
 %include "constants.asm"
 
 ; Global symbols so we can acccess the GDT pointer
 GLOBAL installGDT
 EXTERN GDTPointer
 
-; Makes CPU aware of our GDT
+; Make CPU aware of our GDT using the `lgdt` instruction
 installGDT:
     lgdt [GDTPointer]
     

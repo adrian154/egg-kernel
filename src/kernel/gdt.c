@@ -1,11 +1,10 @@
 #include "gdt.h"
 #include "terminal.h"
 
-// Set up another GDT in C since it's more convenient
-// Segmentation is deprecated anyways
-// The safest/most convenient option is to simply set up a 4G flat memory space
+// Set up a new GDT that lays out a flat 4G address space
+// This is necessary since the old GDT may be overwritten
 
-// 5 GDT entries:
+// 3 GDT entries:
 // 1 null entry (required)
 // 2 ring 0 entries (code/data segment)
 struct GDTEntry GDT[NUM_GDT_ENTRIES];

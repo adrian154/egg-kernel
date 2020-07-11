@@ -26,6 +26,7 @@ void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uin
     envData.memoryMap = newmmap;
 
     // Fill in some fields in envData
+    // Some other fields are also filled in by the physical allocator initialization code
     envData.kernelPhysicalStart = kernelPhysicalStart;
     envData.kernelPhysicalEnd = kernelPhysicalEnd;
 

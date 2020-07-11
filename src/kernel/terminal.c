@@ -1,9 +1,9 @@
 #include "terminal.h"
 #include "ioport.h"
 
-// note:
+// Note:
 // TECHNICALLY text mode is deprecated,
-// but so is BIOS so that's not really relevant
+// but so is legacy BIOS so that's not really relevant
 
 // Some terminal globals
 unsigned int terminalX;

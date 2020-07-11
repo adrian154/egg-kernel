@@ -17,6 +17,7 @@ struct GDTDescriptor {
     uint32_t offset;        // offset of the GDT in physical memory
 }__attribute__((packed));
 
+// Bitmasks to manipulate GDT fields
 #define GDT_CODE_SEG_READABLE       0b00000010
 #define GDT_DATA_SEG_WRITEABLE      0b00000010
 #define GDT_ACCESS_NO_READWRITE     0b00000000
@@ -40,7 +41,7 @@ struct GDTDescriptor {
 #define GDT_CODE_SELECTOR           0x08
 #define GDT_DATA_SELECTOR           0x10
 
-// See gdt.c for more info on globals
+// There are 3 GDT entries (gdt.c)
 #define NUM_GDT_ENTRIES 3
 
 extern struct GDTEntry GDT[NUM_GDT_ENTRIES];

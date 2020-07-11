@@ -3,6 +3,9 @@
 #include "idt.h"
 #include "gdt.h"
 
+// The exception handler is triggered when an exception occurs.
+// Currently, it prints out an error message.
+
 // Exception messages
 const char *exceptionMessages[32] = {
     "Division by Zero",
@@ -41,7 +44,6 @@ const char *exceptionMessages[32] = {
 
 // Eventually, when usermode + multitasking is implemented, exceptions will be handled differently
 // For now, treat everything as fatal since there's only the kernel running and nothing to fall back on
-
 void exceptionHandler(struct ExceptionFrame *frame) {
 
     terminalColor = makeColor(TERMINAL_COLOR_RED, TERMINAL_COLOR_BLACK);
@@ -59,10 +61,11 @@ void exceptionHandler(struct ExceptionFrame *frame) {
 
         putChar('\n');
 
-        // debug: CR2 contains the virtual address of the illegal access
+        // When a page fault occurs, CR2 contains the logical address the faulting instruction tried to access
         uint32_t addr;
         __asm__ __volatile__("mov %%cr2, %0" : "=r" (addr) :: "eax");
 
+        // The error code on the stack contains information about the type of access
         if(frame->errorCode & 0b100) {
             print("user ");
         } else {
@@ -87,9 +90,10 @@ void exceptionHandler(struct ExceptionFrame *frame) {
 
 }
 
+// When an exception occurs, interrupts 0..31 may be triggered depending on the exception.
+// So, set up 32 ISRs to handle each exception.
 void setupExceptionHandlers() {
 
-    // Set up each exception handler as an interrupt gate
     addIDTEntry(0, (uint32_t)isr0, GDT_CODE_SELECTOR, IDT_ENTRY_PRESENT | IDT_ENTRY_RING0 | IDT_ENTRY_32BIT | IDT_ENTRY_INTERRUPT_GATE);
     addIDTEntry(1, (uint32_t)isr1, GDT_CODE_SELECTOR, IDT_ENTRY_PRESENT | IDT_ENTRY_RING0 | IDT_ENTRY_32BIT | IDT_ENTRY_INTERRUPT_GATE);
     addIDTEntry(2, (uint32_t)isr2, GDT_CODE_SELECTOR, IDT_ENTRY_PRESENT | IDT_ENTRY_RING0 | IDT_ENTRY_32BIT | IDT_ENTRY_INTERRUPT_GATE);

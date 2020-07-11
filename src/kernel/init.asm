@@ -7,7 +7,7 @@ BITS 32
 ; Expose some symbols so linker doesn't throw a fit
 GLOBAL start
 
-; Some symbols
+; Symbols defined by the linker that are passed to the kernel
 EXTERN cmain
 EXTERN kernelPhysicalStart
 EXTERN kernelPhysicalEnd
@@ -21,6 +21,8 @@ start:
     mov ebp, stack_bottom
     mov esp, stack_top
 
+    ; Push parameters to the kernel
+    ; EAX has a pointer to the environmentData struct
     push kernelPhysicalEnd
     push kernelPhysicalStart
     push eax
@@ -36,6 +38,7 @@ hang:
     hlt
     jmp hang
 
+; Stack for the kernel
 ALIGN 16
 stack_bottom:
     resb 4096

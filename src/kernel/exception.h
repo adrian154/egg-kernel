@@ -3,6 +3,7 @@
 
 #include "kernel.h"
 
+// Exception numbers
 #define DIVISION_BY_ZERO_EXCEPTION              0
 #define DEBUG_EXCEPTION                         1
 #define NON_MASKABLE_INTERRUPT_EXCEPTION        2
@@ -67,6 +68,7 @@ extern void isr29();
 extern void isr30();
 extern void isr31();
 
+// Common exception handler
 extern void exceptionHandler(struct ExceptionFrame *frame);
 extern void setupExceptionHandlers();
 

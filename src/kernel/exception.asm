@@ -2,10 +2,13 @@
 
 %include "constants.asm"
 
-; 2nd half of the exception handler, in C
+; The 32 x86 exceptions trigger interrupts 0..31
+; There are 32 exception handlers that jump to a common stub, which sets up the environment for the C exception handler
+
+; 2nd half of the exception handler (exception.c)
 EXTERN exceptionHandler
 
-; Expose some symbols
+; Expose symbols so they can be registered in the IDT (exception.c)
 GLOBAL isr0
 GLOBAL isr1
 GLOBAL isr2
@@ -42,7 +45,7 @@ GLOBAL isr31
 ; All exception handlers push EFLAGS, CS, and EIP.
 ; Some exceptions (17/#AC, 14/#PF, 13/#GP, 12/#SS, 11/#NP, 10/#TS, and 8/#DF) push an error code to the stack
 ; For exceptions that DON'T push an error code, we push a dummy error code to avoid alignment issues
-; We also push the exception number so all exceptions can be directed to one generic handler in C
+; Also push the exception number so all exceptions can be directed to one generic handler in C
 
 isr0:
     push BYTE 0

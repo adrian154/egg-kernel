@@ -4,6 +4,10 @@
 #include "string.h"
 #include "terminal.h"
 
+// The physical memory allocator allocates physical memory with 4K granularity.
+// Physical pages cannot be immediately used, they need to be mapped first (paging.c)
+// The virtual memory allocator (virtalloc.c) does this in a small region reserved for the kernel.
+
 // page-frame bitmap
 uint32_t *pageBitmap;
 
@@ -94,9 +98,12 @@ void setupPhysicalAlloc(struct EnvironmentData *envData) {
         iAllocPage(i);
     }
 
+    // fill in envData field
+    envData->bitmapPhysicalEnd = end;
+
 }
 
-void *allocPage() {
+void *allocPhysPage() {
 
     for(size_t i = 0; i < pageBitmapSizeU32; i++) {
         

@@ -1,9 +1,14 @@
 #include "idt.h"
 #include "string.h"
 
+// Set up an IDT
+// This allows the kernel to define its own interrupt handlers
+
+// The IDT does not strictly have to be 256 entries long, but there's no point in having fewer entries for us
 struct IDTEntry IDT[256];
 struct IDTDescriptor IDTPointer;
 
+// Add entry to IDT
 void addIDTEntry(int index, uint32_t offset, uint16_t selector, uint8_t flags) {
 
     // Code is largely self explanatory - populate IDT entry with relevant fields
@@ -15,6 +20,7 @@ void addIDTEntry(int index, uint32_t offset, uint16_t selector, uint8_t flags) {
 
 } 
 
+// Set up the IDT
 void setupIDT() {
 
     // Set up IDT pointer first

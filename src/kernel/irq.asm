@@ -2,6 +2,10 @@
 
 %include "constants.asm"
 
+; The kernel remaps the PIC so that IRQs 0..16 trigger interrupts 32..48
+; There are 16 IRQ handlers that jump to a common stub, which sets up the environment for the C IRQ handler
+; The C IRQ handling code dispatches another IRQ handler for that specific IRQ (irq.c)
+
 ; 2nd half of the IRQ handler, in C
 EXTERN mainIRQHandler
 
