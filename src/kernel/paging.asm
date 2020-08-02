@@ -1,5 +1,7 @@
 GLOBAL loadPageDirectory
 GLOBAL enablePaging
+GLOBAL invalidateMapping
+GLOBAL flushAllPages
 
 ; C prototype: void loadPageDirectory(uint32_t *pageDirectory)
 ; Put pointer to page directory in CR3

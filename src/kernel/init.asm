@@ -12,6 +12,8 @@ EXTERN cmain
 EXTERN kernelPhysicalStart
 EXTERN kernelPhysicalEnd
 
+SECTION .text
+
 start:
 
     ; Pop environmentData (see bootloader.asm) off old stack
@@ -37,6 +39,8 @@ hang:
     cli
     hlt
     jmp hang
+
+SECTION .bss
 
 ; Stack for the kernel
 ALIGN 16

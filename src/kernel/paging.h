@@ -28,15 +28,48 @@
 #define PTE_CACHE_DISABLED  0b00010000
 #define PTE_CACHE_ENABLED   0b00000000
 
+// Bitmasks to help with extracting page bits
+#define ADDR_HI10_MASK      0xFFC00000
+#define ADDR_MID10_MASK     0xFFC00
+#define ADDR_LOW12_MASK     0xFFF
+#define ADDR_HI20_MASK      0xFFFFF000
+
+extern uint32_t pageDirectory[1024];
+
 // Utility functions to help isolate PDE/PTE entry indexes for a logical address
 static inline uint32_t getPDEIndex(void *logical) {
     uint32_t addr = (uint32_t)logical; 
-    return (addr & 0xFFC00000) >> 22;
+    return (addr & ADDR_HI10_MASK) >> 22;
 }
 
 static inline uint32_t getPTEIndex(void *logical) {
     uint32_t addr = (uint32_t)logical;
-    return (addr & 0x00FFC00) >> 12;
+    return (addr & ADDR_MID10_MASK) >> 12;
+}
+
+static inline uint32_t getOffset(void *logical) {
+    uint32_t addr = (uint32_t)logical;
+    return addr & ADDR_LOW12_MASK;
+}
+
+static inline uint32_t *getPageTable(void *logical) {
+    int idx = getPDEIndex(logical);
+    if(pageDirectory[idx] & PDE_PRESENT) {
+        return (uint32_t *)(pageDirectory[idx] & ADDR_HI20_MASK);
+    } else {
+        return NULL;
+    }
+}
+
+static inline void *getPhysMapping(void *logical) {
+    uint32_t *pageTable = getPageTable(logical);
+    if(pageTable == NULL) return NULL;
+    int idx = getPTEIndex(logical);
+    if(pageTable[idx] & PTE_PRESENT) {
+        return (void *)(pageTable[idx] & ADDR_HI20_MASK);
+    } else {
+        return NULL;
+    }
 }
 
 extern void loadPageDirectory(uint32_t *pageDirectory);
