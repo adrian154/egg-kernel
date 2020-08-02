@@ -71,7 +71,7 @@ void *allocVirtPage() {
         pageDirectory[getPDEIndex(virtPage)] = (uint32_t)pageTable | PDE_PRESENT | PDE_SUPERVISOR | PDE_READ_WRITE; 
 
     } else {
-        pageTable = (uint32_t)(pageDirEnt & ADDR_HI20_MASK);
+        pageTable = (uint32_t *)(pageDirEnt & ADDR_HI20_MASK);
     }
 
     pageTable[getPTEIndex(virtPage)] = (uint32_t)physPage | PDE_PRESENT | PDE_SUPERVISOR | PDE_READ_WRITE;
@@ -97,5 +97,8 @@ void freeVirtPage(void *ptr) {
     uint32_t *pageTable = getPageTable(ptr);
     int idx = getPTEIndex(ptr);
     pageTable[idx] = PTE_NOT_PRESENT;
+
+    // Invalidate old TLB entry
+    invalidateMapping(ptr);
 
 }
