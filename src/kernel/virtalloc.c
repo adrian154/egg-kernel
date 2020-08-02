@@ -27,21 +27,22 @@ void setupVirtAlloc() {
 // Get a free virtual address
 void *getFreeVirtAddr() {
 
-    // Save pre-search nextFree so we know when to give up
-    uint32_t preSearchAddr = (uint32_t)nextFree;
+    uint32_t searchAddr = (uint32_t)nextFree;
 
-    while((uint32_t)nextFree != preSearchAddr) {
-
-        if(getPhysMapping(nextFree) == NULL) {
+    do {
+        if(getPhysMapping((void *)searchAddr) == NULL) {
+            nextFree = (void *)searchAddr;
             return nextFree;
         }
 
-        // Increment search address
-        preSearchAddr += (1 << 12);
-        if(preSearchAddr > KERNEL_RESERVED_MAX)
-            preSearchAddr = 0;
+        print("[Incrementing search...]");
 
-    }
+        searchAddr += (1 << 12);
+        if(searchAddr > KERNEL_RESERVED_MAX)
+            searchAddr = 0;
+    } while(searchAddr != (uint32_t)nextFree);
+
+    print("[No more virtual addresses!]");
 
     // At this point, PANIC since an exhaustive search has yielded no free virtual addresses.
     // This is very bad.
@@ -56,9 +57,24 @@ void *allocVirtPage() {
 
     // Get virtual mapping
     void *virtPage = getFreeVirtAddr();
-    
+
     // Map page as kernel (assuming the PDE is set appropriately by setupVirtAlloc())
-    uint32_t *pageTable = getPageTable(virtPage);
+    uint32_t pageDirEnt = pageDirectory[getPDEIndex(virtPage)];
+    uint32_t *pageTable;
+    if(!(pageDirEnt & PDE_PRESENT)) {
+
+        // Allocate new page table
+        pageTable = allocPhysPage();
+
+        // Clear out page table
+        for(int i = 0; i < 1024; i++) {
+            pageTable[i] = PDE_NOT_PRESENT;
+        }
+
+    } else {
+        pageTable = (uint32_t)(pageDirEnt & ADDR_HI20_MASK);
+    }
+
     pageTable[getPTEIndex(virtPage)] = (uint32_t)physPage | PDE_PRESENT | PDE_SUPERVISOR | PDE_READ_WRITE;
 
     // Invalidate any TLB entries so our changes take effect

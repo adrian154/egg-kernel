@@ -66,10 +66,10 @@ void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uin
     setupVirtAlloc();
 
     // Example
-    print("Allocated: 0x"); printHexInt(allocVirtPage());
-print("Allocated: 0x"); printHexInt(allocVirtPage());
-print("Allocated: 0x"); printHexInt(allocVirtPage());
-print("Allocated: 0x"); printHexInt(allocVirtPage());
+    print("Allocated: 0x"); printHexInt((uint32_t)allocVirtPage());
+print("Allocated: 0x"); printHexInt((uint32_t)allocVirtPage());
+print("Allocated: 0x"); printHexInt((uint32_t)allocVirtPage());
+print("Allocated: 0x"); printHexInt((uint32_t)allocVirtPage());
 
     // infinite loop so CPU doesn't start executing junk
     for(;;) {
