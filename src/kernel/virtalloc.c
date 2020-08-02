@@ -35,14 +35,10 @@ void *getFreeVirtAddr() {
             return nextFree;
         }
 
-        print("[Incrementing search...]");
-
         searchAddr += (1 << 12);
         if(searchAddr > KERNEL_RESERVED_MAX)
             searchAddr = 0;
     } while(searchAddr != (uint32_t)nextFree);
-
-    print("[No more virtual addresses!]");
 
     // At this point, PANIC since an exhaustive search has yielded no free virtual addresses.
     // This is very bad.

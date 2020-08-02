@@ -2,7 +2,6 @@
 #define __PAGING_H
 
 #include "kernel.h"
-#include "terminal.h"
 
 // Bitmasks to manipulate page directories and tables
 #define PDE_PRESENT         0b00000001
@@ -66,7 +65,6 @@ static inline void *getPhysMapping(void *logical) {
     uint32_t *pageTable = getPageTable(logical);
     if(pageTable == NULL) return NULL;
     int idx = getPTEIndex(logical);
-    print("[ptval=0x"); printHexInt(pageTable[idx]); print("]");
     if(pageTable[idx] & PTE_PRESENT) {
         return (void *)(pageTable[idx] & ADDR_HI20_MASK);
     } else {
