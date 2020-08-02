@@ -10,6 +10,7 @@
 #include "physalloc.h"
 #include "string.h"
 #include "paging.h"
+#include "virtalloc.h"
 
 void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uint32_t kernelPhysicalEnd) {
     
@@ -18,7 +19,7 @@ void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uin
     memcpy(envDataOld, &envData, sizeof(struct EnvironmentData));    
 
     // Do the same for the memory map since it too is in potentially free memory
-    // Unfortunately a VLA must be used here, but the stack size is known so it's fine
+    // Unfortunately a VLA must be used here, but the stack size is known so it's probably fine...
     struct MemoryMapEntry newmmap[envData.numMemoryMapEntries];
     memcpy(envData.memoryMap, newmmap, sizeof(struct MemoryMapEntry) * envData.numMemoryMapEntries);
 
@@ -62,6 +63,13 @@ void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uin
     // Set up paging!
     setupPhysicalAlloc(&envData);
     setupPaging();
+    setupVirtAlloc();
+
+    // Example
+    print("Allocated: 0x"); printHexInt(allocVirtPage());
+print("Allocated: 0x"); printHexInt(allocVirtPage());
+print("Allocated: 0x"); printHexInt(allocVirtPage());
+print("Allocated: 0x"); printHexInt(allocVirtPage());
 
     // infinite loop so CPU doesn't start executing junk
     for(;;) {
