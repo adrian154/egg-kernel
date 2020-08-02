@@ -68,8 +68,11 @@ void *allocVirtPage() {
 
         // Clear out page table
         for(int i = 0; i < 1024; i++) {
-            pageTable[i] = PDE_NOT_PRESENT;
+            pageTable[i] = PTE_NOT_PRESENT;
         }
+
+        // Set page directory entry
+        pageDirectory[getPDEIndex(virtPage)] = (uint32_t)pageTable | PDE_PRESENT | PDE_SUPERVISOR | PDE_READ_WRITE; 
 
     } else {
         pageTable = (uint32_t)(pageDirEnt & ADDR_HI20_MASK);
