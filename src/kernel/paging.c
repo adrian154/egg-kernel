@@ -24,13 +24,15 @@ void setupPaging() {
     }
     pageDirectory[0] = (uint32_t)baseTable | PDE_PRESENT | PDE_SUPERVISOR | PDE_READ_WRITE;
 
-    // NOTE TO SELF:
-    // This is not a good example on how to access page tables.
-    // This code sets up paging, so before it all addresses are physical.
-    // However, after paging is enabled, the memory returned by the PMM is probably not mapped.
-    // Therefore, you must access pages by first going through getTableVirtAddr() (paging.h)
-    // Sometimes this will seemingly work since a lot of physical allocations are in the identity-mapped 4M
-    // But that will not always be true, and code could mysteriously break!
+    /*
+     * NOTE TO SELF:
+     * This is not a good example on how to access page tables.
+     * This code sets up paging, so before it all addresses are physical.
+     * However, after paging is enabled, the memory returned by the PMM is probably not mapped.
+     * Therefore, you must access pages by first going through getTableVirtAddr() (paging.h)
+     * Sometimes this will seemingly work since a lot of physical allocations are in the identity-mapped 4M
+     * But that will not always be true, and code could mysteriously break!
+     */
 
     loadPageDirectory(pageDirectory);
     enablePaging();
