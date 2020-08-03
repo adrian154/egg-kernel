@@ -72,6 +72,11 @@ static inline void *getPhysMapping(void *logical) {
     }
 }
 
+// Assumes that the table is a value in the range of [0..1023]
+static inline void *getTableVirtAddr(int table) {
+    return (void *)(ADDR_HI10_MASK | (table << 12));
+}
+
 extern void loadPageDirectory(uint32_t *pageDirectory);
 extern void enablePaging();
 extern void setupPaging();
