@@ -63,7 +63,6 @@ void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uin
     // Set up paging!
     setupPhysicalAlloc(&envData);
     setupPaging();
-    setupVirtAlloc();
 
     // infinite loop so CPU doesn't start executing junk
     for(;;) {

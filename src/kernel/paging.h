@@ -52,7 +52,10 @@ static inline uint32_t getOffset(void *logical) {
     return addr & ADDR_LOW12_MASK;
 }
 
-static inline uint32_t *getPageTable(void *logical) {
+// Gets the page table responsible for a given logical address
+// NOTE: THIS RETURNS A PHYSICAL ADDRESS AND NOT A VIRTUAL ONE
+// SO IT IS NOT DIRECTLY USABLE!
+static inline uint32_t *getPageTablePhysical(void *logical) {
     int idx = getPDEIndex(logical);
     if(pageDirectory[idx] & PDE_PRESENT) {
         return (uint32_t *)(pageDirectory[idx] & ADDR_HI20_MASK);
@@ -61,20 +64,28 @@ static inline uint32_t *getPageTable(void *logical) {
     }
 }
 
+// Gets the page table responsible for a given logical address
+static inline void *getPageTableVirtual(void *logical) {
+    int idx = getPDEIndex(logical);
+    if(pageDirectory[idx] & PDE_PRESENT) {
+        return (void *)(ADDR_HI10_MASK | ((uint32_t)logical & ADDR_MID10_MASK));
+    } else {
+        return NULL;
+    }
+}
+
 static inline void *getPhysMapping(void *logical) {
-    uint32_t *pageTable = getPageTable(logical);
-    if(pageTable == NULL) return NULL;
+    uint32_t *pageTable = getPageTableVirtual(logical);
+    if(pageTable == NULL) {
+        return NULL;
+    }
+    
     int idx = getPTEIndex(logical);
     if(pageTable[idx] & PTE_PRESENT) {
         return (void *)(pageTable[idx] & ADDR_HI20_MASK);
     } else {
         return NULL;
     }
-}
-
-// Assumes that the table is a value in the range of [0..1023]
-static inline void *getTableVirtAddr(int table) {
-    return (void *)(ADDR_HI10_MASK | (table << 12));
 }
 
 extern void loadPageDirectory(uint32_t *pageDirectory);
