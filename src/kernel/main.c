@@ -19,7 +19,7 @@ void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uin
     memcpy(envDataOld, &envData, sizeof(struct EnvironmentData));    
 
     // Do the same for the memory map since it too is in potentially free memory
-    // Unfortunately a VLA must be used here, but the stack size is known so it's probably fine...
+    // Unfortunately a VLA must be used here, but it's probably fine...
     struct MemoryMapEntry newmmap[envData.numMemoryMapEntries];
     memcpy(envData.memoryMap, newmmap, sizeof(struct MemoryMapEntry) * envData.numMemoryMapEntries);
 
@@ -60,7 +60,7 @@ void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uin
         mmapEnt += 1;
     }
 
-    // Set up paging!
+    // Set up paging
     setupPhysicalAlloc(&envData);
     setupPaging();
 
