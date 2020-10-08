@@ -30,26 +30,23 @@
 
 // Bitmasks to help with extracting page bits
 #define ADDR_HI10_MASK      0xFFC00000
-#define ADDR_MID10_MASK     0xFFC00
+#define ADDR_MID10_MASK     0x3FF000
 #define ADDR_LOW12_MASK     0xFFF
 #define ADDR_HI20_MASK      0xFFFFF000
 
 extern uint32_t pageDirectory[1024];
 
-// Utility functions to help isolate PDE/PTE entry indexes for a logical address
+// Utility functions to help split an address into its parts.
 static inline uint32_t getPDEIndex(void *logical) {
-    uint32_t addr = (uint32_t)logical; 
-    return (addr & ADDR_HI10_MASK) >> 22;
+    return ((uint32_t)logical & ADDR_HI10_MASK) >> 22;
 }
 
 static inline uint32_t getPTEIndex(void *logical) {
-    uint32_t addr = (uint32_t)logical;
-    return (addr & ADDR_MID10_MASK) >> 12;
+    return ((uint32_t)logical & ADDR_MID10_MASK) >> 12;
 }
 
 static inline uint32_t getOffset(void *logical) {
-    uint32_t addr = (uint32_t)logical;
-    return addr & ADDR_LOW12_MASK;
+    return ((uint32_t)logical & ADDR_LOW12_MASK);
 }
 
 // Gets the page table responsible for a given logical address
@@ -65,7 +62,7 @@ static inline uint32_t *getPageTablePhysical(void *logical) {
 }
 
 // Gets the page table responsible for a given logical address
-static inline void *getPageTableVirtual(void *logical) {
+static inline uint32_t *getPageTableVirtual(void *logical) {
     int idx = getPDEIndex(logical);
     if(pageDirectory[idx] & PDE_PRESENT) {
         return (void *)(ADDR_HI10_MASK | ((uint32_t)logical & ADDR_MID10_MASK));
@@ -74,6 +71,7 @@ static inline void *getPageTableVirtual(void *logical) {
     }
 }
 
+// This code is probably evil, avoid calling it
 static inline void *getPhysMapping(void *logical) {
     uint32_t *pageTable = getPageTableVirtual(logical);
     if(pageTable == NULL) {

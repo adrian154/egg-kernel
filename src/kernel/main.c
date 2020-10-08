@@ -10,7 +10,7 @@
 #include "physalloc.h"
 #include "string.h"
 #include "paging.h"
-#include "virtalloc.h"
+#include "kernalloc.h"
 
 void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uint32_t kernelPhysicalEnd) {
     
