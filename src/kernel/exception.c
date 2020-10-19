@@ -47,14 +47,20 @@ const char *exceptionMessages[32] = {
 void exceptionHandler(struct ExceptionFrame *frame) {
 
     terminalColor = makeColor(TERMINAL_COLOR_RED, TERMINAL_COLOR_BLACK);
-    print("exception occurred!\n");
-    print("DS="); printHexInt(frame->DS); print(", ES="); printHexInt(frame->ES); print(", FS="); printHexInt(frame->FS); print(", GS="); printHexInt(frame->GS);
-    print("\nEDI="); printHexInt(frame->EDI); print(", ESI="); printHexInt(frame->ESI); print(", EBP="); printHexInt(frame->kernelEBP); print(", ESP="); printHexInt(frame->kernelESP);
-    print("\nEBX="); printHexInt(frame->EBX); print(", EDX="); printHexInt(frame->EDX); print(", ECX="); printHexInt(frame->ECX); print(", EAX="); printHexInt(frame->EAX); 
-    print("\nINT_NO="); printHexInt(frame->interruptNumber); print(", ERR_CODE="); printHexInt(frame->errorCode);
-    print("\nEFLAGS="); printHexInt(frame->EFLAGS); print(", CS="); printHexInt(frame->CS); print(", EIP="); printHexInt(frame->EIP);
-    print("\nIntSS="); printHexInt(frame->intSS); print(", IntESP="); printHexInt(frame->intESP);
-    print("\nexception name="); print(exceptionMessages[frame->interruptNumber]);
+    print("Exception occurred: ");print(exceptionMessages[frame->interruptNumber]);
+    
+    print("\nSegments: DS="); printHexInt(frame->DS);
+    print(", ES="); printHexInt(frame->ES);
+    print(", FS="); printHexInt(frame->FS);
+    print(", GS="); printHexInt(frame->GS);
+
+    print("\nSaved registers: EDI="); printHexInt(frame->EDI); print(", ESI="); printHexInt(frame->ESI); print(", EBP="); printHexInt(frame->EBP); print(", ESP="); printHexInt(frame->ESP);
+    print("\nEBX="); printHexInt(frame->EBX); print(", EDX="); printHexInt(frame->EDX); print(", ECX="); printHexInt(frame->ECX); print(", EAX="); printHexInt(frame->EAX);
+
+    print("\nException info: INT_NO="); printHexInt(frame->interruptNumber); print(", ERR_CODE="); printHexInt(frame->errorCode);
+    
+    print("\nGeneric interrupt info: EFLAGS="); printHexInt(frame->interruptFrame.EFLAGS); print(", CS="); printHexInt(frame->interruptFrame.CS); print(", EIP="); printHexInt(frame->interruptFrame.EIP);
+    print("\nUserSS="); printHexInt(frame->interruptFrame.userSS); print(", UserESP="); printHexInt(frame->interruptFrame.userESP);
 
     // Special handler for page faults
     if(frame->interruptNumber == PAGE_FAULT_EXCEPTION) {

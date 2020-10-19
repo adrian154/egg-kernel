@@ -3,8 +3,8 @@ export CFLAGS="-ffreestanding -Wall -Wextra -std=gnu11 -O2"
 export LDFLAGS="-ffreestanding -nostdlib -lgcc -O2"
 
 # Assemble bootsector and bootloader
-nasm -f bin ./bootloader/bootsector.asm -o ../build/bootsector.bin
-nasm -f bin ./bootloader/bootloader.asm -o ../build/bootloader.bin
+nasm -f bin ./boot/bootsector.asm -o ../build/bootsector.bin
+nasm -f bin ./boot/bootloader.asm -o ../build/bootloader.bin
 
 # Assemble protected-mode parts of the kernel
 nasm -f elf ./kernel/init.asm -o ../build/init.o

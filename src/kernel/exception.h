@@ -2,6 +2,7 @@
 #define __EXCEPTION_H
 
 #include "kernel.h"
+#include "interrupt.h"
 
 // Exception numbers
 #define DIVISION_BY_ZERO_EXCEPTION              0
@@ -27,11 +28,30 @@
 
 // Data on the stack before C exception handler starts working
 struct ExceptionFrame {
-    uint32_t GS, FS, ES, DS;                                        // Also pushed
-    uint32_t EDI, ESI, kernelEBP, kernelESP, EBX, EDX, ECX, EAX;    // Pushed by PUSHA in common exception handler 
-    uint32_t interruptNumber, errorCode;                            // Pushed by exception handlers
-    uint32_t EFLAGS, CS, EIP;                                       // Pushed by processor automagically
-    uint32_t intSS, intESP;                                         // Interrupted code's SS/ESP 
+    
+    // Also pushed by commonExceptionHandler
+    uint32_t GS;
+    uint32_t FS;
+    uint32_t ES;
+    uint32_t DS;
+
+    // From pusha
+    uint32_t EDI;
+    uint32_t ESI;
+    uint32_t EBP;
+    uint32_t ESP;
+    uint32_t EBX;
+    uint32_t EDX;
+    uint32_t ECX;
+    uint32_t EAX;
+
+    // Pushed by each exception handler
+    uint32_t interruptNumber;
+    uint32_t errorCode;
+
+    // Pushed by CPU
+    struct InterruptFrame interruptFrame;    
+
 }__attribute__((packed));
 
 // Interrupt handlers declared in exception.asm
