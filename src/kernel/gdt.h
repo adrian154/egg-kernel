@@ -29,6 +29,10 @@ struct GDTDescriptor {
 #define GDT_OTHER                   0b00000000
 #define GDT_ACCESS_PRESENT          0b10000000
 
+// Flags for TSS descriptors
+#define GDT_ACCESS_TSS              0b00001001
+#define GDT_ACCESS_TSS_BUSY         0b00000010
+
 #define GDT_ACCESS_RING0            0b00000000
 #define GDT_ACCESS_RING1            0b00100000
 #define GDT_ACCESS_RING2            0b01000000

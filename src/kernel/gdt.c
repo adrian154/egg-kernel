@@ -83,8 +83,8 @@ void setupGDT() {
     addGDTEntry(
         5,
         (uint32_t)&kernelTSSEntry,
-        sizeof(kernelTSSEntry),
-        GDT_ACCESS_PRESENT | GDT_ACCESS_RING3 | GDT_ACCESS_EXECUTABLE,
+        sizeof(kernelTSSEntry) - 1,
+        GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_TSS,
         GDT_FLAGS_BYTE_GRANULARITY
     );
 
@@ -92,7 +92,7 @@ void setupGDT() {
     // Set to zero to avoid issues
     memset(&kernelTSSEntry, 0, sizeof(struct TSSEntry));
     kernelTSSEntry.SS0 = GDT_DATA_SELECTOR; // The kernel's stack segment
-
+    setKernelStack(0x100000);
 
     // Tell CPU about our new GDT
     installGDT();

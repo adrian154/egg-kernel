@@ -14,17 +14,15 @@ testEnterUsermode:
     mov fs, ax
     mov gs, ax
 
-    ; IRET pops flags and some selectors n shit off the stack
-    ; "Trick" the processor by pushing some extra things
-    ; I'll bet it never saw that one coming!
-    ; it's late
-    mov eax, esp
-    push USER_DATA_SEG
-    push eax
-    pushf
-    push USER_CODE_SEG
-    push usermodeFunc
-    
+    ; IRET pops flags and some selectors n shit
+    ; "Trick" the processor by fiddling with the stack
+    mov eax, esp        ; Save ESP from before pushing data segment
+    push USER_DATA_SEG  ; Push stack segment
+    push eax            ; Push saved ESP -> [SS:ESP]
+    pushf               ; FLAGS
+    push USER_CODE_SEG  ; Return CS
+    push usermodeFunc   ; Return EIP -> [CS:EIP]
+
     ; the trickery goes on here
     iret
 
