@@ -64,6 +64,8 @@ void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uin
     setupPhysicalAlloc(&envData);
     setupPaging();
 
+    testEnterUsermode();
+
     // infinite loop so CPU doesn't start executing junk
     for(;;) {
         __asm__ ("hlt");

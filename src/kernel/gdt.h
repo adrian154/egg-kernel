@@ -56,5 +56,6 @@ extern struct TSSEntry kernelTSSEntry;
 extern void installGDT();
 extern void setupGDT();
 extern void setKernelStack(uint32_t stack);
+extern void installTSS();
 
 #endif

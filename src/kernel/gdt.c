@@ -96,11 +96,12 @@ void setupGDT() {
 
     // Tell CPU about our new GDT
     installGDT();
+    installTSS();
 
 }
 
 // The CPU looks at the TSS to restore the kernel stack once an interrupt occurs
-// Specifically, it sets [SS:ESP] to [TSSEnt.SS0, TSSEnt.ESP0]
+// Specifically, it sets [SS:ESP] to [TSSEnt.SS0, TSS]
 void setKernelStack(uint32_t stack) {
     kernelTSSEntry.ESP0 = stack;
 }
