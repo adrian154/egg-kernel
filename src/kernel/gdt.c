@@ -1,5 +1,5 @@
 #include "gdt.h"
-#include "terminal.h"
+#include "string.h"
 
 // Set up a new GDT that lays out a flat 4G address space
 // This is necessary since the old GDT may be overwritten
@@ -8,6 +8,7 @@
 // 1 null entry (required)
 // 2 ring 0 entries (code/data segment)
 struct GDTEntry GDT[NUM_GDT_ENTRIES];
+struct TSSEntry kernelTSSEntry;
 struct GDTDescriptor GDTPointer;
 
 // Add entry to GDT
@@ -58,7 +59,48 @@ void setupGDT() {
         GDT_FLAGS_4K_GRANULARITY | GDT_FLAGS_32BIT
     );
 
+    // User code segment
+    addGDTEntry(
+        3,
+        0x00000000,
+        0xFFFFFFFF,
+        GDT_ACCESS_PRESENT | GDT_ACCESS_CODE_OR_DATA | GDT_ACCESS_EXECUTABLE | GDT_CODE_SEG_READABLE | GDT_ACCESS_RING3,
+        GDT_FLAGS_4K_GRANULARITY | GDT_FLAGS_32BIT
+    );
+
+    // User data segment
+    addGDTEntry(
+        4,
+        0x00000000,
+        0xFFFFFFFF,
+        GDT_ACCESS_PRESENT | GDT_ACCESS_CODE_OR_DATA | GDT_DATA_SEG_WRITEABLE | GDT_ACCESS_RING3,
+        GDT_FLAGS_4K_GRANULARITY | GDT_FLAGS_32BIT
+    );
+
+    // TSS segment
+    // The EXECUTABLE flag actually determines whether the TSS is 32 or 16 bit
+    // Information on TSS descriptors in the GDT is scarce outside of the Intel manuals and it's late ;)
+    addGDTEntry(
+        5,
+        (uint32_t)&kernelTSSEntry,
+        sizeof(kernelTSSEntry),
+        GDT_ACCESS_PRESENT | GDT_ACCESS_RING3 | GDT_ACCESS_EXECUTABLE,
+        GDT_FLAGS_BYTE_GRANULARITY
+    );
+
+    // Set up TSS entry
+    // Set to zero to avoid issues
+    memset(&kernelTSSEntry, 0, sizeof(struct TSSEntry));
+    kernelTSSEntry.SS0 = GDT_DATA_SELECTOR; // The kernel's stack segment
+
+
     // Tell CPU about our new GDT
     installGDT();
 
+}
+
+// The CPU looks at the TSS to restore the kernel stack once an interrupt occurs
+// Specifically, it sets [SS:ESP] to [TSSEnt.SS0, TSSEnt.ESP0]
+void setKernelStack(uint32_t stack) {
+    kernelTSSEntry.ESP0 = stack;
 }

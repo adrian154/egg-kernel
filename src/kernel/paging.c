@@ -1,9 +1,20 @@
 #include "paging.h"
 #include "physalloc.h"
+#include "kernalloc.h"
 
 // Static page directory
 // Other paging structures are dynamically allocated, but there will only ever be one PDE
 uint32_t pageDirectory[1024] __attribute__((aligned(4096)));
+
+uint32_t *baseTable;
+
+// The kernel page tables are reused in every page table
+// However, each process has its own dedicated page table
+void setupKernelPages(uint32_t *pageDirectory) {
+
+    pageDirectory[0] = (uint32_t)baseTable | PDE_PRESENT | PDE_SUPERVISOR | PDE_READ_WRITE;
+
+}
 
 // Initialize paging
 void setupPaging() {
@@ -18,12 +29,13 @@ void setupPaging() {
     pageDirectory[1023] = (uint32_t)pageDirectory | PDE_PRESENT | PDE_SUPERVISOR | PDE_READ_WRITE;
 
     // Identity page first 4M
-    uint32_t *baseTable = allocPhysPage();
+    baseTable = allocPhysPage();
     for(int i = 0; i < 1024; i++) {
         baseTable[i] = (i << 12) | PTE_SUPERVISOR | PTE_READ_WRITE | PTE_PRESENT;
     }
-    pageDirectory[0] = (uint32_t)baseTable | PDE_PRESENT | PDE_SUPERVISOR | PDE_READ_WRITE;
 
+    setupKernelPages(pageDirectory);
+    
     /*
      * NOTE TO SELF:
      * This is not a good example on how to access page tables.

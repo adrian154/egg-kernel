@@ -48,6 +48,14 @@ void *findFreeRange(unsigned int howMany) {
 
 }
 
+void *allocVirt(unsigned int pages) {
+
+}
+
+void *freeVirt(void *addr) {
+
+}
+
 void initKernAlloc() {
     lastSearched = (uint8_t *)0;
 }

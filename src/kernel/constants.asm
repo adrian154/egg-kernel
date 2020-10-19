@@ -4,7 +4,11 @@
 %ifndef __CONSTANTS
 %define __CONSTANTS
 
-CODE_SEG equ 0x08   ; PL=00 (ring0), Table=0 (GDT), Index=1 (first entry in GDT)
-DATA_SEG equ 0x10   ; PL=00 (ring0), Table=0 (GDT), Index=2 (second entry in GDT)
+; See gdt.h for explanation of selector values
+CODE_SEG equ 0x08
+DATA_SEG equ 0x10
+USER_CODE_SEG equ 0x1B
+USER_DATA_SEG equ 0x23
+TSS_SEG equ 0x2B
 
 %endif

@@ -2,6 +2,7 @@
 #define __GDT_H
 
 #include "kernel.h"
+#include "tss.h"
 
 struct GDTEntry {
     uint16_t limitLow;      // lower 16 bits of limit
@@ -38,16 +39,22 @@ struct GDTDescriptor {
 #define GDT_FLAGS_BYTE_GRANULARITY  0b00000000
 #define GDT_FLAGS_4K_GRANULARITY    0b10000000
 
-#define GDT_CODE_SELECTOR           0x08
-#define GDT_DATA_SELECTOR           0x10
+// Selectors
+#define GDT_CODE_SELECTOR           0x08    // PL=0, Table=GDT, Index=1
+#define GDT_DATA_SELECTOR           0x10    // PL=0, Table=GDT, Index=2
+#define GDT_USER_CODE_SELECTOR      0x1B    // PL=3, Table=GDT, Index=3
+#define GDT_USER_DATA_SELECTOR      0x23    // PL=3, Table=GDT, Index=4
+#define GDT_TSS_SELECTOR            0x2B    // PL=3, Table=GDT, Index=5
 
 // There are 3 GDT entries (gdt.c)
-#define NUM_GDT_ENTRIES 3
+#define NUM_GDT_ENTRIES 6
 
 extern struct GDTEntry GDT[NUM_GDT_ENTRIES];
 extern struct GDTDescriptor GDTPointer;
+extern struct TSSEntry kernelTSSEntry;
 
 extern void installGDT();
 extern void setupGDT();
+extern void setKernelStack(uint32_t stack);
 
 #endif
