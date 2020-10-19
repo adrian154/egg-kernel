@@ -53,7 +53,7 @@ void exceptionHandler(struct ExceptionFrame *frame) {
     print("\nEBX="); printHexInt(frame->EBX); print(", EDX="); printHexInt(frame->EDX); print(", ECX="); printHexInt(frame->ECX); print(", EAX="); printHexInt(frame->EAX); 
     print("\nINT_NO="); printHexInt(frame->interruptNumber); print(", ERR_CODE="); printHexInt(frame->errorCode);
     print("\nEFLAGS="); printHexInt(frame->EFLAGS); print(", CS="); printHexInt(frame->CS); print(", EIP="); printHexInt(frame->EIP);
-    print("\nUserSS="); printHexInt(frame->userSS); print(", UserESP="); printHexInt(frame->userESP);
+    print("\nIntSS="); printHexInt(frame->intSS); print(", IntESP="); printHexInt(frame->intESP);
     print("\nexception name="); print(exceptionMessages[frame->interruptNumber]);
 
     // Special handler for page faults

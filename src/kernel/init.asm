@@ -6,6 +6,7 @@ BITS 32
 
 ; Expose some symbols so linker doesn't throw a fit
 GLOBAL start
+GLOBAL interruptStack
 
 ; Symbols defined by the linker that are passed to the kernel
 EXTERN cmain

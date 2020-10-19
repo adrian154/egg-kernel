@@ -171,6 +171,7 @@ isr31:
 
 commonExceptionHandler:
     
+    ; This saves 4 GP registers, ESP pre-push, EBP, ESI, EDI
     pusha
 
     ; Save SOME segment registers on stack
@@ -189,11 +190,12 @@ commonExceptionHandler:
     mov fs, ax
     mov gs, ax
 
-    ; Pass ESP to exceptionHandler() since an ExceptionFrame is stored on stack
-    mov eax, esp
-    push eax
+    ; Pass ESP to exceptionHandler()
+    ; The exception handler takes a struct as an argument
+    ; We essentially use that struct to describe what's on the stack right now
+    push esp
 
-    ; Not sure why this is necessary, but most code seems to do this...
+    ; Not sure why this is necessary, but most code seems to do this indirect call...
     mov eax, exceptionHandler
     call eax
 

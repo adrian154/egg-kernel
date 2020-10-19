@@ -14,8 +14,9 @@ testEnterUsermode:
     mov fs, ax
     mov gs, ax
 
-    ; IRET pops flags and some selectors n shit
-    ; "Trick" the processor by fiddling with the stack
+    ; IRET pops CS:EIP, EFLAGS, and SS:ESP
+    ; The CPU expects that these don't change so it can restore processor state before the interrupt
+    ; However, we're not in an interrupt, so we push these values on to the stack and trick the CPU so that it jumps to a usermode segment
     mov eax, esp        ; Save ESP from before pushing data segment
     push USER_DATA_SEG  ; Push stack segment
     push eax            ; Push saved ESP -> [SS:ESP]
