@@ -105,6 +105,14 @@ enum key {
 	KEY_KP_7,
 	KEY_KP_8,
 	KEY_KP_9,
+	KEY_M1,
+	KEY_M2,
+	KEY_M3,
+	KEY_M4,
+	KEY_M5,
+	KEY_M6,
+	KEY_M7,
+	KEY_M8,
     KEY_ENTER,
     KEY_SPACE
 };
