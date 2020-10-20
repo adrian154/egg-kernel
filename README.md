@@ -22,3 +22,9 @@ Running egg-kernel in an emulator is incredibly easy. For QEMU:
 ```
 qemu-system-i386 -hda disk.hdd
 ```
+
+# what does it look like?
+
+Not much. egg-kernel is extremely early in development.
+
+![image of OS](picture.png)
