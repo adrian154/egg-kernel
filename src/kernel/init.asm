@@ -1,12 +1,10 @@
 ; init.asm: Sets up environment for OS
 
 ; Loaded in protected mode at 1M
-
 BITS 32
 
 ; Expose some symbols so linker doesn't throw a fit
 GLOBAL start
-GLOBAL interrupt_stack
 
 ; Symbols defined by the linker that are passed to the kernel
 EXTERN cmain
@@ -21,13 +19,15 @@ start:
     pop eax
 
     ; Set up a stack for the kernel
-    mov ebp, stack_bottom
-    mov esp, stack_top
+    mov ebp, stackBottom
+    mov esp, stackTop
 
     ; Push parameters to the kernel
     ; EAX has a pointer to the environmentData struct
+    push interruptStack
     push kernelPhysicalEnd
     push kernelPhysicalStart
+    
     push eax
     
     ; Call kernel
@@ -45,10 +45,10 @@ SECTION .bss
 
 ; Stack for the kernel
 ALIGN 16
-stack_bottom:
+stackBottom:
     resb 4096
-stack_top:
+stackTop:
 
 ; Reserve a smaller stack for use inside of interrupt handlers
-interrupt_stack:
     resb 1024
+interruptStack:

@@ -9,6 +9,7 @@ struct EnvironmentData {
     uint32_t kernelPhysicalStart;
     uint32_t kernelPhysicalEnd;
     uint32_t bitmapPhysicalEnd;
+    uint32_t interruptStack;
 }__attribute__((packed));
 
 #endif

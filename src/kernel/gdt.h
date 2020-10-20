@@ -4,6 +4,7 @@
 #include "kernel.h"
 #include "tss.h"
 #include "interrupt.h"
+#include "init.h"
 
 struct GDTEntry {
     uint16_t limitLow;      // lower 16 bits of limit
@@ -59,8 +60,7 @@ extern struct GDTDescriptor GDTPointer;
 extern struct TSSEntry kernelTSSEntry;
 
 extern void installGDT();
-extern void setupGDT();
+extern void setupGDT(struct EnvironmentData *envData);
 extern void setKernelStack(uint32_t stack);
-extern void installTSS();
 
 #endif

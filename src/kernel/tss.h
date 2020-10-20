@@ -37,4 +37,7 @@ struct TSSEntry {
     
 }__attribute__((packed));
 
+// tss.asm:
+extern void installTSS();
+
 #endif

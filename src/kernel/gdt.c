@@ -31,7 +31,7 @@ void addGDTEntry(int index, uint32_t base, uint32_t limit, uint8_t access, uint8
 }
 
 // Set up the GDT
-void setupGDT() {
+void setupGDT(struct EnvironmentData *envData) {
 
     // The size field in the GDT descriptor is subtracted by 1
     // This is because a uint16_t can only store 0..65535 but the max size of a GDT is 65536
@@ -92,7 +92,7 @@ void setupGDT() {
     // Set to zero to avoid issues
     memset(&kernelTSSEntry, 0, sizeof(struct TSSEntry));
     kernelTSSEntry.SS0 = GDT_DATA_SELECTOR; // The kernel's stack segment
-    setKernelStack((uint32_t)interrupt_stack);
+    setKernelStack(envData->interruptStack);
 
     // Tell CPU about our new GDT
     installGDT();

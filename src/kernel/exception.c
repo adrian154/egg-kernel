@@ -47,7 +47,7 @@ const char *exceptionMessages[32] = {
 void exceptionHandler(struct ExceptionFrame *frame) {
 
     terminalColor = makeColor(TERMINAL_COLOR_RED, TERMINAL_COLOR_BLACK);
-    print("Exception occurred: ");print(exceptionMessages[frame->interruptNumber]);
+    print("\nException occurred: ");print(exceptionMessages[frame->interruptNumber]);
     
     print("\nSegments: DS="); printHexInt(frame->DS);
     print(", ES="); printHexInt(frame->ES);

@@ -12,7 +12,51 @@
 #include "paging.h"
 #include "kernalloc.h"
 
-void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uint32_t kernelPhysicalEnd) {
+void setupEarly(struct EnvironmentData *envData) {
+
+    initTerminal();
+    print("egg kernel started\n");
+
+    setupGDT(envData);
+    print("GDT setup was successful\n");
+
+    setupIDT();
+    print("IDT setup was successful\n");
+
+    setupExceptionHandlers();
+    print("Exception handler setup was successful\n");
+
+    setupIRQs();
+    print("IRQ handler setup was successful\n");
+
+}
+
+void printMemoryMap(struct EnvironmentData *envData) {
+
+    struct MemoryMapEntry *mmapEnt = envData->memoryMap;
+    for(int i = 0; i < envData->numMemoryMapEntries; i++) {
+        print("base=0x"); printHexLong(mmapEnt->base);
+        print(", length="); printHexLong(mmapEnt->length);
+        print(", type="); printHexByte(mmapEnt->type);
+        print(", ACPI=0x");
+        printHexByte(mmapEnt->ACPIAttributes);
+        putChar('\n');
+        mmapEnt += 1;
+    }
+
+}
+
+void printEnvData(struct EnvironmentData *envData) {
+
+    print("[envdata] disk number = 0x"); printHexByte(envData->diskNumber);
+    print("\n[envdata] kernel physical start  = 0x"); printHexInt(envData->kernelPhysicalStart);
+    print("\n[envdata] kernel physical end    = 0x"); printHexInt(envData->kernelPhysicalEnd);
+    print("\n[envdata] bitmap physical end    = 0x"); printHexInt(envData->bitmapPhysicalEnd);
+    print("\n[envdata] kernel interrupt stack = 0x"); printHexInt(envData->interruptStack);
+
+}
+
+void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uint32_t kernelPhysicalEnd, uint32_t interruptStack) {
     
     // Copy passed envData into a new envData on the stack since the old one is lying around in free memory that may be overwritten
     struct EnvironmentData envData;
@@ -30,40 +74,21 @@ void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uin
     // Some other fields are also filled in by the physical allocator initialization code
     envData.kernelPhysicalStart = kernelPhysicalStart;
     envData.kernelPhysicalEnd = kernelPhysicalEnd;
+    envData.interruptStack = interruptStack;
 
     disableInterrupts();
-
-    // set up terminal and print a little hello message
-    initTerminal();
-    print("egg kernel started\n");
-
-    // do some early environment setup
-    setupGDT();
-    print("GDT setup was successful\n");
-    print("interrupt stack is at 0x"); printHexInt((uint32_t)interrupt_stack);
-
-    setupIDT();
-    print("\nIDT setup was successful\n");
-
-    setupExceptionHandlers();
-    print("Exception handler setup was successful\n");
-
-    setupIRQs();
-    print("IRQ handler setup was successful\n");
-
-    // Ready to enable interrupts at this point
+    setupEarly(&envData);
     enableInterrupts();
 
-    // Print memory map for debugging (generally useful)
-    struct MemoryMapEntry *mmapEnt = envData.memoryMap;
-    for(int i = 0; i < envData.numMemoryMapEntries; i++) {
-        print("base=0x"); printHexLong(mmapEnt->base); print(", length="); printHexLong(mmapEnt->length); print(", type="); printHexByte(mmapEnt->type); print(", ACPI=0x"); printHexByte(mmapEnt->ACPIAttributes); putChar('\n');
-        mmapEnt += 1;
-    }
+    // Print debug info
+    printMemoryMap(&envData);
 
     // Set up paging
     setupPhysicalAlloc(&envData);
     setupPaging();
+
+    // Print debug info
+    printEnvData(&envData);
 
     testEnterUsermode();
 
