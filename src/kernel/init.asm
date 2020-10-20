@@ -6,7 +6,7 @@ BITS 32
 
 ; Expose some symbols so linker doesn't throw a fit
 GLOBAL start
-GLOBAL interruptStack
+GLOBAL interrupt_stack
 
 ; Symbols defined by the linker that are passed to the kernel
 EXTERN cmain
@@ -48,3 +48,7 @@ ALIGN 16
 stack_bottom:
     resb 4096
 stack_top:
+
+; Reserve a smaller stack for use inside of interrupt handlers
+interrupt_stack:
+    resb 1024

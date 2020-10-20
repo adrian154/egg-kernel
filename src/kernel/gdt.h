@@ -3,6 +3,7 @@
 
 #include "kernel.h"
 #include "tss.h"
+#include "interrupt.h"
 
 struct GDTEntry {
     uint16_t limitLow;      // lower 16 bits of limit

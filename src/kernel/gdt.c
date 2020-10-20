@@ -92,7 +92,7 @@ void setupGDT() {
     // Set to zero to avoid issues
     memset(&kernelTSSEntry, 0, sizeof(struct TSSEntry));
     kernelTSSEntry.SS0 = GDT_DATA_SELECTOR; // The kernel's stack segment
-    setKernelStack(0x7c00);
+    setKernelStack((uint32_t)interrupt_stack);
 
     // Tell CPU about our new GDT
     installGDT();

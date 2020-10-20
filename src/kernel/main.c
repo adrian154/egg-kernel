@@ -40,9 +40,10 @@ void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uin
     // do some early environment setup
     setupGDT();
     print("GDT setup was successful\n");
+    print("interrupt stack is at 0x"); printHexInt((uint32_t)interrupt_stack);
 
     setupIDT();
-    print("IDT setup was successful\n");
+    print("\nIDT setup was successful\n");
 
     setupExceptionHandlers();
     print("Exception handler setup was successful\n");

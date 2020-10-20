@@ -1,6 +1,6 @@
 export OBJECT_FILES="../build/init.o ../build/main.o ../build/ioport.o ../build/terminal.o ../build/gdt.o ../build/gdt_asm.o ../build/idt_asm.o ../build/idt.o ../build/exception_asm.o ../build/exception.o ../build/pic.o ../build/irq.o ../build/irq_asm.o ../build/physalloc.o ../build/paging.o ../build/paging_asm.o ../build/kernalloc.o ../build/tss.o ../build/usermode.o"
 export CFLAGS="-ffreestanding -Wall -Wextra -std=gnu11 -O2"
-export LDFLAGS="-ffreestanding -nostdlib -lgcc -O2"
+export LDFLAGS="-ffreestanding -nostdlib -lgcc -O2 -Xlinker -Map=../debug/kernel.map"
 
 # Assemble bootsector and bootloader
 nasm -f bin ./boot/bootsector.asm -o ../build/bootsector.bin

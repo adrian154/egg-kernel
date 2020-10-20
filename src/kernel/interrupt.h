@@ -1,6 +1,9 @@
 #ifndef __INTERRUPT_H
 #define __INTERRUPT_H
 
+// See init.asm
+extern void *interrupt_stack;
+
 // Always pushed by processor on ALL interrupts
 struct InterruptFrame {
     

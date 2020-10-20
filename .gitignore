@@ -6,6 +6,9 @@
 *.o
 *.bin
 
+# Debug maps
+*.map
+
 # Disk images
 *.img
 *.hdd
