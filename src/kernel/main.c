@@ -76,6 +76,7 @@ void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uin
     envData.kernelPhysicalEnd = kernelPhysicalEnd;
     envData.interruptStack = interruptStack;
 
+    // beware - setupEarly does a ton!
     disableInterrupts();
     setupEarly(&envData);
     enableInterrupts();

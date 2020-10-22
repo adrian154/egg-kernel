@@ -3,6 +3,10 @@
 
 #include "kernel.h"
 
+// Maximum address reserved for the kernel
+// Must be 4K aligned, lower 12 bits are discarded
+#define KERNEL_RESERVED_MAX 0x04000000
+
 // Bitmasks to manipulate page directories and tables
 #define PDE_PRESENT         0b00000001
 #define PDE_NOT_PRESENT     0b00000000
