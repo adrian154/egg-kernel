@@ -2,6 +2,9 @@ export OBJECT_FILES="../build/init.o ../build/main.o ../build/ioport.o ../build/
 export CFLAGS="-ffreestanding -Wall -Wextra -std=gnu11 -O2"
 export LDFLAGS="-ffreestanding -nostdlib -lgcc -O2 -Xlinker -Map=../debug/kernel.map"
 
+mkdir -p ../build
+mkdir -p ../debug
+
 # Assemble bootsector and bootloader
 nasm -f bin ./boot/bootsector.asm -o ../build/bootsector.bin
 nasm -f bin ./boot/bootloader.asm -o ../build/bootloader.bin
