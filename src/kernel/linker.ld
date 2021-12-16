@@ -7,6 +7,10 @@ kernelPhysicalStart = .;
 
 SECTIONS {
 
+    .start : {
+        *(.start)
+    }
+
     .text : {
         *(.text)
     }

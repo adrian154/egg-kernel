@@ -10,7 +10,6 @@
 #include "physalloc.h"
 #include "string.h"
 #include "paging.h"
-#include "kernalloc.h"
 
 void setupEarly(struct EnvironmentData *envData) {
 
@@ -28,7 +27,7 @@ void setupEarly(struct EnvironmentData *envData) {
 
     setupIRQs();
     print("IRQ handler setup was successful\n");
-
+ 
 }
 
 void printMemoryMap(struct EnvironmentData *envData) {

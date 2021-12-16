@@ -1,6 +1,5 @@
 #include "paging.h"
 #include "physalloc.h"
-#include "kernalloc.h"
 
 // Static page directory
 // Other paging structures are dynamically allocated, but there will only ever be one PDE

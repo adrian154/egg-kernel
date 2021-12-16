@@ -11,7 +11,7 @@ EXTERN cmain
 EXTERN kernelPhysicalStart
 EXTERN kernelPhysicalEnd
 
-SECTION .text
+SECTION .start
 
 start:
 
