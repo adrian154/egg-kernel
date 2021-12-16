@@ -8,7 +8,7 @@ OUT_IMG := $(IMGDIR)/disk.hdd
 IMG_COPY := $(IMGDIR)/disk_copy.hdd
 
 # flags
-CFLAGS := -ffreestanding -Wall -Wextra -Wpedantic -std=c11 -O3
+CFLAGS := -ffreestanding -Wall -Wextra -Wpedantic -std=gnu11 -O3
 
 # final os components
 BOOTSECTOR := $(BUILDDIR)/boot/bootsector.bin 
@@ -38,10 +38,6 @@ $(OUT_IMG): $(BOOTSECTOR) $(BOOTLOADER) $(KERNEL)
 $(BUILDDIR)/boot/%.bin: $(SRCDIR)/boot/%.asm
 	nasm -f bin $< -o $@
 
-# link kernel
-$(KERNEL): $(C_OBJ_FILES) $(ASM_OBJ_FILES)
-	i686-elf-gcc -T $(LINKER_SCRIPT) -o $(KERNEL) $(LINKER_FLAGS) $^
-
 # compile C parts of kernel
 $(BUILDDIR)/kernel/c/%.o: $(SRCDIR)/kernel/%.c
 	i686-elf-gcc -c $< -o $@ $(CFLAGS)
@@ -50,10 +46,14 @@ $(BUILDDIR)/kernel/c/%.o: $(SRCDIR)/kernel/%.c
 $(BUILDDIR)/kernel/asm/%.o: $(SRCDIR)/kernel/%.asm
 	asm -f elf $< -o $@ -i $(SRCDIR)/kernel
 
+# link kernel
+$(KERNEL): $(C_OBJ_FILES) $(ASM_OBJ_FILES)
+	i686-elf-gcc -T $(LINKER_SCRIPT) -o $(KERNEL) $(LINKER_FLAGS) $^
+
 clean:
 	mkdir -p $(BUILDDIR)/boot
 	mkdir -p $(BUILDDIR)/kernel/asm
 	mkdir -p $(BUILDDIR)/kernel/c
 	mkdir -p $(IMGDIR)
-	rm -i -r $(BUILDDIR)
-	rm -i -r $(IMGDIR)
+	rm -rfi $(BUILDDIR)
+	rm -rfi $(IMGDIR)
