@@ -1,21 +1,20 @@
 ; bootloader.asm: EggOS bootloader
+; The bootloader sets up the environment for the kernel, e.g. load a GDT and enter protected mode
 
-; Start environment: Loaded at 0x0000:0x7E00 (right above bootsector)
-; Segment registers zeroed, valid stack exists
-; Disk number on stack
+; This code will be loaded at 0x7E00 (right above the bootsector)
+; The segment registers have been setup as well as a small stack
+; The disk number is also the first thing on the stack
 
 BITS 16
 ORG 0x7E00
 
-; Defines
-MEMORY_MAP_OFFSET equ 0x8200        ; Offset at which the memory map will be loated
+MEMORY_MAP_OFFSET equ 0x8200        ; Offset at which the memory map will be stored
+KERNEL_SIZE_SECTORS equ 48          ; Size of the kernel in sectors
+KERNEL_LOAD_OFFSET equ 0x8400       ; Segment-offset where the kernel will be loaded in memory
+KERNEL_LOAD_SEGMENT equ 0x0000      ; (...)
+KERNEL_START_SECTOR equ 3           ; First sector of kernel on disk
+E820_MAGIC equ 0x534D4150           ; Magic number used for E820 calls ('SMAP')
 
-KERNEL_SIZE_SECTORS equ 48
-KERNEL_LOAD_OFFSET equ 0x8400
-KERNEL_LOAD_SEGMENT equ 0x0000
-KERNEL_START_SECTOR equ 3
-
-; Entry point
 start:
 
     ; Save disk number that was pushed by bootsector
@@ -25,7 +24,8 @@ start:
     mov si, welcomeMessage
     call print
 
-    ; Get memory map
+    ; Get memory map for the kernel
+    ; This is best done while still in real mode since BIOS interrupts can't be accessed from protected mode
     call doE820
     cmp ax, 0
     jne .errorE820
@@ -46,6 +46,7 @@ start:
     ; Hang just in case (execution should never get here though)
     jmp hang
 
+; various error handlers
 .errorE820:
     mov si, errorE820Str
     call print
@@ -63,31 +64,29 @@ start:
 
 ; Print a string via BIOS interrupts
 print:
-    ; AH = function number (0x0E = print char)
-    ; Also clear direction flag so string is loaded correctly
+    ; INT 0x10 AH=0x0E: print character (BIOS handles return)
     mov ah, 0x0E
+    ; Make sure string is read in right order (lodsb) by clearing direction flag
     cld
 .loop:
     ; Load next character in string and print via BIOS
     lodsb
-    cmp al, 0   ; Exit if null (string is done)
+    cmp al, 0   ; Exit when null
     je .done
     int 0x10
     jmp .loop
 .done:
     ret
 
-; Hang: halt system indefinitely
+; Halt system indefinitely
 hang:
     cli
     hlt
     jmp hang
 
 ; Get memory map via BIOS interrupts
-; Returns error code if not successful, 0 if success
-; BP will contain number of entries read
-;
-; ERROR CODES:
+; RETURN (AX):
+; 0 = success, BP contains number of entries
 ; 1 = carry flag was set 
 ; 2 = E820 not supported 
 ; 3 = the returned list was only 1 entry long
@@ -98,13 +97,13 @@ doE820:
     mov ebx, 0                      ; EBX = "continuation value" (0 for first call)
     mov di, MEMORY_MAP_OFFSET       ; ES:DI = location of buffer to be filled in
     mov ecx, 24                     ; Size of the buffer (24 since we want a full entry)
-    mov edx, 0x534D4150             ; Magic number ('SMAP')
+    mov edx, E820_MAGIC
 
     ; Force entry to be a valid "ACPI" entry
-    ; If BIOS doesn't fill the acpi field of the memory map entry, it will still be 1
+    ; If BIOS doesn't fill the acpi field of the memory map entry, set it to 1
     mov dword [es:di + 20], 1
 
-    ; Return number of memory map entries in BP
+    ; Clear BP (number of entries)
     xor bp, bp
 
     ; Do the interrupt
@@ -125,29 +124,14 @@ doE820:
     ; Do further tests on the entry
     jmp .check
 
-.loop:
-
-    ; ECX, EAX are overwritten by interrupt
-    ; Set up
-    mov eax, 0xE820
-    mov ecx, 24
-    mov dword [es:di + 20], 1
-
-    ; Do interrupt again
-    int 0x15
-    jc .errorCarry
-
-    ; Set up EDX again since it gets trashed on some BIOSes
-    mov edx, 0x534D4150
-
 .check:
     
     ; ECX = size of entry returned
     ; if 0, skip
     jcxz .loopCond
 
-    ; Check if it's an ACPi entry. If not,
-    cmp cl, 20
+    ; If it's unusually short, run other checks
+    cmp ecx, 20
     jbe .check2
 
     ; Check if the "ignore" bit is set.
@@ -165,6 +149,21 @@ doE820:
     ; Advance pointer and increase number of entries
     inc bp
     add di, 24
+
+.loop:
+
+    ; ECX, EAX are overwritten by interrupt
+    ; Set up regs again
+    mov eax, 0xE820
+    mov ecx, 24
+    mov dword [es:di + 20], 1
+
+    ; Do interrupt again
+    int 0x15
+    jc .errorCarry
+
+    ; Set up EDX again since it gets trashed on some BIOSes
+    mov edx, E820_MAGIC
 
 ; Check if the loop should run again
 .loopCond:

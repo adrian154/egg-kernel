@@ -1,22 +1,24 @@
 ; bootsector.asm: EggOS bootsector
+; The bootsector simply loads the next stage of the OS, the bootloader
 
-; Start environment: real mode, physical address = 0x7C00
-; No guarantees about actual CS/IP
-; DL = disk number
+; The CPU always starts execution from a physical address of 0x7C00
+; However, the actual values of CS/IP are not guaranteed.
+; This can be fixed by doing a far jump to set the values of both registers.
+; DL will have the disk number
 
 BITS 16
 ORG 0x7C00
 
-; Some defines
+; How large the bootloader is on disk
 SECTORS_TO_LOAD equ 3
 
 ; Set CS/IP by doing a far jump
 jmp 0x0000:start
 
-; Entry point
 start:
 
-    ; Set up segments and stack
+    ; Prevent interrupts while the stack and segment registers are being set up
+    ; If an interrupt occurred, things could get messy
     cli
 
     ; Zero all segment registers
@@ -29,8 +31,6 @@ start:
     ; Stack grows down from physical 0x7BFF, right below bootsector
     mov ss, ax
     mov sp, 0x7BFF
-
-    sti
 
     ; Save disk number on stack
     push dx
@@ -52,11 +52,11 @@ start:
 
 ; Called if stage 2 can't be loaded
 .errorLoading:
-    mov eax, 0xDEADDEAD
+    mov eax, 0xDEADDEAD ; for debugging purposes
     jmp hang
 
 ; Enable textmode
-; Set VGA mode to 3 (text) via BIOS interrupt 0x10
+; Set VGA mode to 3 (text) via BIOS interrupt 0x10 AH=0
 setTextmode:
     xor ah, ah
     mov al, 0x03
@@ -66,7 +66,7 @@ setTextmode:
 ; Load stage 2 of the bootloader
 ; Use BIOS interrupt 0x13 to load sectors
 loadStage2:
-    ; DL should have the drive index, which is already set for us by the boot sequence
+    ; DL still contains the drive number
     mov ah, 0x42            ; AH = function number (0x42 = "extended read")
     mov si, DAP             ; DS:SI = pointer to DAP (structure containing data for interrupt)
     int 0x13                ; Read data into buffer
@@ -78,9 +78,9 @@ DAP:
     dw SECTORS_TO_LOAD      ; Number of sectors
     dw 0x7E00               ; Buffer offset
     dw 0x0000               ; Buffer segment
-    dq 1                    ; LBA sector to start at
+    dq 1                    ; LBA sector to start at (bootsector = first, 0)
 
-; Hang system forever
+; Halt system forever
 hang:
     cli
     hlt
