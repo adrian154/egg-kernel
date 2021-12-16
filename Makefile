@@ -5,8 +5,8 @@ IMGDIR := img
 LINKER_SCRIPT := $(SRCDIR)/kernel/linker.ld
 
 # make an extra copy of the image so that it can be viewed by a hex editor during emulation
-OUT_IMG := $(IMGDIR)/disk.hdd
-IMG_COPY := $(IMGDIR)/disk_copy.hdd
+OUT_IMG := $(IMGDIR)/disk.img
+IMG_COPY := $(IMGDIR)/disk_copy.img
 
 # flags
 CFLAGS := -ffreestanding -Wall -Wextra -Wpedantic -std=gnu11 -O3

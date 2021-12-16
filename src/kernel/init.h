@@ -4,7 +4,7 @@
 // Struct passed by bootloader (plus a few extra fields populated at various stages)
 struct EnvironmentData {
     uint8_t diskNumber;
-    uint16_t numMemoryMapEntries;
+    uint32_t numMemoryMapEntries;
     void *memoryMap;
     uint32_t kernelPhysicalStart;
     uint32_t kernelPhysicalEnd;
