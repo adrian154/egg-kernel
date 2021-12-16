@@ -1,40 +1,59 @@
-# --- Directories
-SRCDIR := src
-BUILDDIR := build
-IMGDIR := img
+# directories
+SRCDIR := ./src
+BUILDDIR := ./build
+IMGDIR := ./img
 
-# produce two copies of output image so it can be viewed with a hex editor during emulation
-OUTIMG := $(IMGDIR)/disk.hdd
-COPYIMG := $(IMGDIR)/disk_copy.hdd
+# make an extra copy of the image so that it can be viewed by a hex editor during emulation
+OUT_IMG := $(IMGDIR)/disk.hdd
+IMG_COPY := $(IMGDIR)/disk_copy.hdd
 
-# --- Flags
-CFLAGS := -ffreestanding -Wall -Wextra -std=gnu11 -O2
-ASM_BOOT_FLAGS := -f elf
+# flags
+CFLAGS := -ffreestanding -Wall -Wextra -Wpedantic -std=c11 -O3
 
-# --- Other filelists
-BOOTSECTOR_DEPS := $(BUILDDIR)/boot/bootsector.bin 
-BOOTLOADER_DEPS := $(BUILDDIR)/boot/bootloader.bin
-KERNEL_DEPS := $(BUILDDIR)/kernel/kernel.bin
+# final os components
+BOOTSECTOR := $(BUILDDIR)/boot/bootsector.bin 
+BOOTLOADER := $(BUILDDIR)/boot/bootloader.bin
+KERNEL := $(BUILDDIR)/kernel/kernel.bin
 
-# --- Phonies
-.PHONY: all clean
+# kernel files
+_C_OBJ_FILES := main.o terminal.o gdt.o idt.o exception.o pic.o irq.o physalloc.o paging.o init.o
+_ASM_OBJ_FILES := init.o ioport.o gdt_asm.o idt_asm.o exception_asm.o irq_asm.o paging_asm.o tss.o usermode.o
+C_OBJ_FILES = $(patsubst %,$(BUILDDIR)/kernel/c/%,$(_C_OBJ_FILES))
+ASM_OBJ_FILES = $(patsubst %,$(BUILDDIR)/kernel/asm/%,$(_ASM_OBJ_FILES))
 
-# --- Rules
-all: $(OUTIMG)
-	cp $(OUTIMG) $(COPYIMG)
+# declare a couple targets so they don't get overwritten by files
+.PHONY: eggkernel clean
 
-$(OUTIMG): $(BOOTSECTOR_DEPS) $(BOOTLOADER_DEPS) $(KERNEL_DEPS)
-	dd if=$(BOOTSECTOR_DEPS) of=$@
-	dd if=$(BOOTLOADER_DEPS) of=$@ seek=1 bs=512
-	dd if=$(KERNEL_DEPS) of=$@ seek=3 bs=512
+# clean, build image, copy image
+eggkernel: clean $(OUT_IMG)
+	cp $(OUT_IMG) $(IMG_COPY)
 
-# Generic bootloader rule
+# assemble OS components into a flat image
+$(OUT_IMG): $(BOOTSECTOR) $(BOOTLOADER) $(KERNEL)
+	dd if=$(BOOTSECTOR) of=$@
+	dd if=$(BOOTLOADER) of=$@ seek=1 bs=512
+	dd if=$(KERNEL) of=$@ seek=3 bs=512
+
+# build bootsector and bootloader
 $(BUILDDIR)/boot/%.bin: $(SRCDIR)/boot/%.asm
-	nasm $(ASM_BOOT_FLAGS) $< -o $@
+	nasm -f bin $< -o $@
 
-$(KERNEL_DEPS): 
-	# TODO: ...
+# link kernel
+$(KERNEL): $(C_OBJ_FILES) $(ASM_OBJ_FILES)
+	i686-elf-gcc -T $(LINKER_SCRIPT) -o $(KERNEL) $(LINKER_FLAGS) $^
+
+# compile C parts of kernel
+$(BUILDDIR)/kernel/c/%.o: $(SRCDIR)/kernel/%.c
+	i686-elf-gcc -c $< -o $@ $(CFLAGS)
+
+# assemble asm parts of kernel
+$(BUILDDIR)/kernel/asm/%.o: $(SRCDIR)/kernel/%.asm
+	asm -f elf $< -o $@ -i $(SRCDIR)/kernel
 
 clean:
-	rm -rf $(BUILDDIR)/*
-	rm -rf $(IMGDIR)/*
+	mkdir -p $(BUILDDIR)/boot
+	mkdir -p $(BUILDDIR)/kernel/asm
+	mkdir -p $(BUILDDIR)/kernel/c
+	mkdir -p $(IMGDIR)
+	rm -i -r $(BUILDDIR)
+	rm -i -r $(IMGDIR)
