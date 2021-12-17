@@ -67,5 +67,5 @@ $(KERNEL): $(C_OBJ_FILES) $(ASM_OBJ_FILES)
 
 clean:
 	rm -rf $(BUILDDIR)
-#rm -rf $(IMGDIR)
+	#rm $(IMGDIR)/*
 	mkdir -p $(BUILDDIR)/kernel/c $(BUILDDIR)/kernel/asm $(BUILDDIR)/bootloader $(IMGDIR)

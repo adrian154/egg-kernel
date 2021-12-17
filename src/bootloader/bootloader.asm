@@ -33,17 +33,17 @@ start:
 
     ; grab memory map
     call do_e820
-    test ax, ax
+    cmp ax, 1
     jne .error_e820
 
     ; enable A20 line
     call enable_A20
-    test ax, ax
+    cmp ax, 1
     jne .error_A20
 
     ; load kernel
     call load_kernel
-    test ax, ax
+    cmp ax, 1
     jne .error_loading_kernel
 
     ; start the kernel
