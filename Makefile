@@ -19,12 +19,14 @@ BOOTSECTOR := $(BUILDDIR)/bootsector.bin
 BOOTLOADER := $(BUILDDIR)/bootloader.bin
 KERNEL := $(BUILDDIR)/kernel/kernel.bin
 
-# kernel files
+# object files
 _C_OBJ_FILES := main.o terminal.o gdt.o idt.o exception.o pic.o irq.o physalloc.o paging.o
 _ASM_OBJ_FILES := init.o ioport.o gdt.o idt.o exception.o irq.o paging.o tss.o usermode.o
+_BOOTLOADER_OBJ_FILES := bootloader.o a20.o e820.o pmode.o
 
 C_OBJ_FILES = $(patsubst %,$(BUILDDIR)/kernel/c/%,$(_C_OBJ_FILES))
 ASM_OBJ_FILES = $(patsubst %,$(BUILDDIR)/kernel/asm/%,$(_ASM_OBJ_FILES))
+BOOTLOADER_OBJ_FILES = $(patsubst %,$(BUILDDIR)/bootloader/%,$(_BOOTLOADER_OBJ_FILES))
 
 # declare a couple targets so they don't get overwritten by files
 .PHONY: eggkernel clean
@@ -65,5 +67,5 @@ $(KERNEL): $(C_OBJ_FILES) $(ASM_OBJ_FILES)
 
 clean:
 	rm -rf $(BUILDDIR)
-	rm -rf $(IMGDIR)
-	mkdir -p $(BUILDDIR)/kernel/c $(BUILDDIR)/kernel/asm $(BUILDDIR)/boot $(IMGDIR)
+#rm -rf $(IMGDIR)
+	mkdir -p $(BUILDDIR)/kernel/c $(BUILDDIR)/kernel/asm $(BUILDDIR)/bootloader $(IMGDIR)
