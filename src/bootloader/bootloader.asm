@@ -7,13 +7,20 @@
 ; The segment registers have been setup as well as a small stack.
 ; The disk number is stored on the stack by the bootsector.
 
-BITS 16
-ORG 0x7E00
+%include "constants.asm"
 
-KERNEL_SIZE_SECTORS equ 57          ; Size of the kernel in sectors
-KERNEL_LOAD_OFFSET equ 0x8400       ; Segment-offset where the kernel will be loaded in memory
-KERNEL_LOAD_SEGMENT equ 0x0000      ; (...)
-KERNEL_START_SECTOR equ 3           ; First sector of kernel on disk
+BITS 16
+SECTION .text
+
+GLOBAL start
+GLOBAL envdata_struct
+GLOBAL envdata_disknumber
+GLOBAL envdata_mmap_entry_count
+GLOBAL envdata_mmap_pointer
+
+EXTERN do_e820
+EXTERN enable_A20
+EXTERN start_kernel
 
 start:
 
@@ -110,7 +117,7 @@ load_kernel:
 ; Check if BIOS INT 0x13 extensions are available
 check_int13h_extensions:
     mov ah, 0x41                    ; INT 0x13 AH=0x41: check if extensions are available
-    mov dx, [envdata_disk_number]   ; DL = disk number
+    mov dx, [envdata_disknumber]    ; DL = disk number
     mov bx, 0x55AA                  ; BX = magic number
     int 0x13
     mov ax, 0
@@ -119,99 +126,6 @@ check_int13h_extensions:
 .done:
     ret
 
-; make transition to protected mode and load the kernel
-start_kernel:
-
-    cli
-
-    ; set up a basic GDT
-    lgdt [GDT_pointer]
-
-    ; set protected mode bit in CR0
-    mov eax, cr0
-    or eax, 0x1
-    mov cr0, eax
-
-    ; load the new segments (in protected mode segment registers store descriptors)
-    mov ax, DATA_SEG
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
-
-    ; load CS by doing a far jump
-    jmp CODE_SEG:pmode_stub
-
-; GDT 
-GDT_start:
-
-; first entry in the GDT must be null and is ignored
-GDT_null_entry:
-    dq 0x0
-
-; limit=0xFFFFF [x4096 = 0xFFFFFFFF (4G)]
-; base=0x00000000
-; access: Present=1, RingLevel=0, Executable=1, Direction=0, ReadWrite=1, Accessed=0
-; flags: Granularity=1, Size=1, LimitHigh=1111 (0xF)
-GDT_code_segment:
-    dw 0xFFFF
-    dw 0x0
-    db 0x0
-    db 10011010b
-    db 11001111b
-    db 0x0
-
-; Identical to GDT data entry, except `access` is different
-GDT_data_segment:
-    dw 0xFFFF
-    dw 0x0
-    db 0x0
-    db 10010010b
-    db 11001111b
-    db 0x0
-
-; End of the GDT
-GDT_end:
-
-; GDT descriptor, which tells the CPU about how to load our table
-GDT_pointer:
-    dw GDT_end - GDT_start 
-    dd GDT_start
-
-CODE_SEG equ GDT_code_segment - GDT_start
-DATA_SEG equ GDT_code_segment - GDT_start
-
-;------------------------------------------------------------------------------;
-; Stub that copies protected-mode kernel to 1M and jumps to it
-
-BITS 32
-pmode_stub:
-
-    ; copy kernel
-    xor eax, eax
-    mov esi, 0x100000
-
-; FIXME: this code ignores KERNEL_LOAD_SEGMENT
-.loop:
-    cmp eax, KERNEL_SIZE_SECTORS * 512
-    je .done
-    mov ebx, [eax + KERNEL_LOAD_OFFSET]
-    mov [esi], ebx
-    add esi, 4
-    add eax, 4
-    jmp .loop
-.done:
-
-    ; pass envdata to start() and jump
-    push DWORD envdata_struct
-    jmp 0x100000
-
-.hang:
-    cli
-    hlt
-    jmp .hang
-
 ; messages
 welcome_message db "eggloader started!",13,10,0
 e820_error_message db "fatal: couldn't get memory map",13,10,0
@@ -219,12 +133,7 @@ a20_error_message db "fatal: couldn't enable A20 line",13,10,0
 load_error_message db "fatal: couldn't load kernel",13,10,0
 
 ; struct
-environment_data:
+envdata_struct:
     envdata_disknumber db 0
     envdata_mmap_entry_count dd 0
     envdata_mmap_pointer dd 0
-
-GLOBAL envdata_struct
-GLOBAL envdata_disknumber
-GLOBAL envdata_mmap_entry_count
-GLOBAL envdata_mmap_pointer

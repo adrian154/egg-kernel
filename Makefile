@@ -2,7 +2,8 @@
 SRCDIR := src
 BUILDDIR := build
 IMGDIR := img
-LINKER_SCRIPT := $(SRCDIR)/kernel/linker.ld
+LOADER_LINKER_SCRIPT := $(SRCDIR)/bootloader/linker.ld
+KERNEL_LINKER_SCRIPT := $(SRCDIR)/kernel/linker.ld
 
 # make an extra copy of the image so that it can be viewed by a hex editor during emulation
 OUT_IMG := $(IMGDIR)/disk.img
@@ -10,16 +11,18 @@ IMG_COPY := $(IMGDIR)/disk_copy.img
 
 # flags
 CFLAGS := -ffreestanding -Wall -Wextra -Wpedantic -std=gnu11 -O3
-LINKER_FLAGS := -ffreestanding -nostdlib -lgcc -Xlinker -Map=$(BUILDDIR)/kernel.map
+LINK_FLAGS := -ffreestanding -nostdlib -lgcc -Xlinker -Map=$(BUILDDIR)/kernel.map
+KERNEL_LINK_FLAGS := -Xlinker -Map=$(BUILDDIR)/kernel.map
 
 # final os components
-BOOTSECTOR := $(BUILDDIR)/boot/bootsector.bin 
-BOOTLOADER := $(BUILDDIR)/boot/bootloader.bin
+BOOTSECTOR := $(BUILDDIR)/bootsector.bin 
+BOOTLOADER := $(BUILDDIR)/bootloader.bin
 KERNEL := $(BUILDDIR)/kernel/kernel.bin
 
 # kernel files
 _C_OBJ_FILES := main.o terminal.o gdt.o idt.o exception.o pic.o irq.o physalloc.o paging.o
 _ASM_OBJ_FILES := init.o ioport.o gdt.o idt.o exception.o irq.o paging.o tss.o usermode.o
+
 C_OBJ_FILES = $(patsubst %,$(BUILDDIR)/kernel/c/%,$(_C_OBJ_FILES))
 ASM_OBJ_FILES = $(patsubst %,$(BUILDDIR)/kernel/asm/%,$(_ASM_OBJ_FILES))
 
@@ -36,9 +39,17 @@ $(OUT_IMG): $(BOOTSECTOR) $(BOOTLOADER) $(KERNEL)
 	dd if=$(BOOTLOADER) of=$@ seek=1 bs=512
 	dd if=$(KERNEL) of=$@ seek=3 bs=512
 
-# build bootsector and bootloader
-$(BUILDDIR)/boot/%.bin: $(SRCDIR)/boot/%.asm
+# build bootsector
+$(BOOTSECTOR): $(SRCDIR)/bootsector.asm
 	nasm -f bin $< -o $@
+
+# assemble bootloader files
+$(BUILDDIR)/bootloader/%.o: $(SRCDIR)/bootloader/%.asm
+	nasm -f elf $< -o $@ -I $(SRCDIR)/bootloader/
+
+# link bootloader
+$(BOOTLOADER): $(BOOTLOADER_OBJ_FILES)
+	i686-elf-gcc -T $(LOADER_LINKER_SCRIPT) -o $(BOOTLOADER) $(LINK_FLAGS) $^
 
 # compile C parts of kernel
 $(BUILDDIR)/kernel/c/%.o: $(SRCDIR)/kernel/%.c
@@ -50,7 +61,7 @@ $(BUILDDIR)/kernel/asm/%.o: $(SRCDIR)/kernel/%.asm
 
 # link kernel
 $(KERNEL): $(C_OBJ_FILES) $(ASM_OBJ_FILES)
-	i686-elf-gcc -T $(LINKER_SCRIPT) -o $(KERNEL) $(LINKER_FLAGS) $^
+	i686-elf-gcc -T $(KERNEL_LINKER_SCRIPT) -o $(KERNEL) $(LINK_FLAGS) $(KERNEL_LINK_FLAGS) $^
 
 clean:
 	rm -rf $(BUILDDIR)

@@ -2,6 +2,9 @@ MMAP_OFFSET equ 0x8200          ; offset at which the memory map will be stored
 E820_MAGIC equ 0x534D4150       ; magic number used for E820 calls ('SMAP')
 E820_ENTRY_SIZE equ 24          ; size of a full memory map entry
 
+BITS 16
+SECTION .text
+
 EXTERN envdata_mmap_entry_count
 EXTERN envdata_mmap_pointer
 GLOBAL do_e820
@@ -20,25 +23,26 @@ do_e820:
 
     ; set up for interrupt
     mov eax, 0xE820                 ; INT 0x15 AX = 0xE820: ask the BIOS for a system address map
-    mov ecx, E820_ENTRY_SIZE        ; the BIOS doesn't really care about the actual size of the buffer; pass the maximum size of an entry to let it know that it can write the acpi field
-    mov edx, E820_MAGIC             ; EDX is a magic number
+    mov ecx, E820_ENTRY_SIZE        ; inform the BIOS that we can accept a full 24-byte response (including the ACPI field)
+    mov edx, E820_MAGIC             ; EDX is trashed
 
-    ; set the acpi field of the memory map entry to 1 in case the BIOS doesn't set it
+    ; the LSB of the ACPI entry indicates whether it should be skipped
+    ; set it to 1 in case the BIOS doesn't touch the ACPI field
     mov dword [es:di + 20], 1
 
     ; do interrupt
     int 0x15
-    jc .error_carry
+    jc .carry
 
     ; if E820 is supported, EAX will have 'SMAP' in it.
     cmp eax, E820_MAGIC
-    jne .error_not_supported
+    jne .error
     
     ; ECX = size of the returned entry
     ; skip empty entries
     jcxz .continue
 
-    ; check if the ignore bit is set (???)
+    ; check acpi `ignore` bit
     test byte [es:di + 20], 1
     je .continue
 
@@ -61,6 +65,14 @@ do_e820:
     mov [envdata_mmap_entry_count], bp
     mov [envdata_mmap_pointer], DWORD MMAP_OFFSET
     ret
+
+.carry:
+
+    ; if bp = 0 (carry flag was set on first call), the operation isn't supported
+    ; otherwise, the end of the list has probably been reached
+    test bp, bp
+    je .error
+    jmp .done
 
 ; called when CF is set - indicates error while calling interrupt.
 .error:
