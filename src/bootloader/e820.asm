@@ -10,7 +10,7 @@ EXTERN envdata_mmap_pointer
 GLOBAL do_e820
 
 ; Get memory map via BIOS interrupts
-; RETURN (AX): 0 on success, 1 if something went wrong
+; RETURN (AX): 0 on failure, 1 on success
 do_e820:
 
     mov ebx, 0               ; ebx = 'continuation value' (0 for the first call)
@@ -59,9 +59,9 @@ do_e820:
 ; clean up and return
 .done:
 
-    ; return 0 for success
+    ; return 1 for success
     ; write number of memory map entries to a fixed offset so it can be read by the kernel
-    mov ax, 0
+    mov ax, 1
     mov [envdata_mmap_entry_count], bp
     mov [envdata_mmap_pointer], DWORD MMAP_OFFSET
     ret
@@ -76,5 +76,5 @@ do_e820:
 
 ; called when CF is set - indicates error while calling interrupt.
 .error:
-    mov ax, 1
+    mov ax, 0
     ret

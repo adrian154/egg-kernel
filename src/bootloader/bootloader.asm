@@ -60,7 +60,6 @@ start:
 .error_loading_kernel:
     mov si, load_error_message
     jmp .error
-
 .error:
     call print
     jmp hang
@@ -90,7 +89,7 @@ load_kernel:
     ; fail if unavailable because I refuse to work with CHS
     call check_int13h_extensions
     test ax, ax
-    jne .error
+    je .error
 
     ; read kernel off disk
     mov ah, 0x42                    ; AH = function number (0x42 = extended read)
@@ -98,7 +97,12 @@ load_kernel:
     mov si, .DAP                    ; DS:SI = pointer to DAP
     int 0x13
     jc .error
-    mov ax, 0
+
+    mov ax, 1
+    ret
+
+.error:
+    xor ax, ax
     ret
 
 ; structure that tells the BIOS what and where to read
@@ -109,10 +113,6 @@ load_kernel:
     dw KERNEL_LOAD_OFFSET
     dw KERNEL_LOAD_SEGMENT 
     dq KERNEL_START_SECTOR 
-
-.error:
-    mov ax, 1
-    ret
 
 ; Check if BIOS INT 0x13 extensions are available
 check_int13h_extensions:
