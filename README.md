@@ -22,6 +22,8 @@ To boot the kernel using QEMU, do:
 qemu-system-i386 -drive file=disk.img,format=raw
 ```
 
+A VMDK image is also outputted to /img for use with VirtualBox/VMWare. egg-kernel appears to be broken on VirtualBox at the moment though.
+
 Trying to boot egg-kernel on modern hardware probably won't work since it doesn't define a proper MBR, though that can easily be fixed. A bigger problem is that many modern BIOSes no longer support booting MBRs. 
 
 # what does it look like?

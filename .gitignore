@@ -1,22 +1,7 @@
-# EXEs, etc. (why would these be?)
-*.exe
-*.dll
+build/
+img/
 
-# Any object files/binaries that might find their way out of /build
-*.o
-*.bin
-
-# Debug maps
-*.map
-
-# Disk images
-*.img
-*.hdd
-
-# Bochs configs
-.bxrc
-
-# Etc.
+# various trash files
 .DS_Store
 .DS_Store?
 ._*
@@ -24,4 +9,3 @@
 .Trashes
 ethumbs.db
 Thumbs.db
-*.txt

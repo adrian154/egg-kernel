@@ -27,11 +27,6 @@ SECTIONS {
         *(.bss)
     }
 
-    /* Add padding to placate VirtualBox and bochs */
-    .padding : {
-        . = ALIGN(512);
-    } =0xEE
-
 }
 
 kernelPhysicalEnd = .;

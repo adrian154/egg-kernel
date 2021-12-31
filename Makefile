@@ -8,6 +8,7 @@ KERNEL_LINKER_SCRIPT := $(SRCDIR)/kernel/linker.ld
 # make an extra copy of the image so that it can be viewed by a hex editor during emulation
 OUT_IMG := $(IMGDIR)/disk.img
 IMG_COPY := $(IMGDIR)/disk_copy.img
+VMDK_IMG := $(IMGDIR)/disk.vmdk
 
 # flags
 CFLAGS := -ffreestanding -Wall -Wextra -Wpedantic -std=gnu17 -O3
@@ -34,6 +35,7 @@ BOOTLOADER_OBJ_FILES = $(patsubst %,$(BUILDDIR)/bootloader/%,$(_BOOTLOADER_OBJ_F
 # clean, build image, copy image
 eggkernel: clean $(OUT_IMG)
 	cp $(OUT_IMG) $(IMG_COPY)
+	qemu-img convert -O vmdk $(OUT_IMG) $(VMDK_IMG)
 
 # assemble OS components into a flat image
 $(OUT_IMG): $(BOOTSECTOR) $(BOOTLOADER) $(KERNEL)
