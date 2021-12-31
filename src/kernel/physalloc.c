@@ -32,7 +32,7 @@ void setupPhysicalAlloc(struct EnvironmentData *envData) {
     uint64_t maxFreeAddr = 0;
 
     struct MemoryMapEntry *mmap = (struct MemoryMapEntry *)envData->memoryMap;
-    for(int i = 0; i < envData->numMemoryMapEntries; i++) {
+    for(uint32_t i = 0; i < envData->numMemoryMapEntries; i++) {
         if(mmap->type == MMAP_FREE) {
             uint64_t limit = mmap->base + mmap->length;
             if(limit > maxFreeAddr && mmap->base < MAX_U32 && limit < MAX_U32) {
@@ -56,7 +56,7 @@ void setupPhysicalAlloc(struct EnvironmentData *envData) {
 
     // iterate through mmap, "free" up regions that are marked as free
     mmap = (struct MemoryMapEntry *)envData->memoryMap;
-    for(int i = 0; i < envData->numMemoryMapEntries; i++) {
+    for(uint32_t i = 0; i < envData->numMemoryMapEntries; i++) {
         if(mmap->type == MMAP_FREE) {
             
             uint64_t base64 = mmap->base;

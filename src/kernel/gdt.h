@@ -6,6 +6,8 @@
 #include "interrupt.h"
 #include "init.h"
 
+// the structure of each individual GDT entry is bafflingly complicated
+// for example the upper 4 bits of the limit are packed with a bunch of other bitfields
 struct GDTEntry {
     uint16_t limitLow;      // lower 16 bits of limit
     uint16_t baseLow;       // lower 16 bits of base
@@ -20,40 +22,44 @@ struct GDTDescriptor {
     uint32_t offset;        // offset of the GDT in physical memory
 }__attribute__((packed));
 
-// Bitmasks to manipulate GDT fields
-#define GDT_CODE_SEG_READABLE       0b00000010
-#define GDT_DATA_SEG_WRITEABLE      0b00000010
-#define GDT_ACCESS_NO_READWRITE     0b00000000
-#define GDT_ACCESS_GROWS_UP         0b00000000
-#define GDT_ACCESS_GROWS_DOWN       0b00000100
-#define GDT_ACCESS_EXECUTABLE       0b00001000
-#define GDT_ACCESS_CODE_OR_DATA     0b00010000
-#define GDT_OTHER                   0b00000000
-#define GDT_ACCESS_PRESENT          0b10000000
+// --- GDT access bitfields
 
-// Flags for TSS descriptors
-#define GDT_ACCESS_TSS              0b00001001
-#define GDT_ACCESS_TSS_BUSY         0b00000010
+// `type` field
+// The value of this field is interpreted differently for code/data descriptors and system descriptors
+// code/data descriptor type fields:
+#define GDT_ACCESS_CODE_SEGMENT        0x1A // readable code segment
+#define GDT_ACCESS_DATA_SEGMENT        0x12 // writeable data segment
+#define GDT_ACCESS_TSS                 0x09
 
-#define GDT_ACCESS_RING0            0b00000000
-#define GDT_ACCESS_RING1            0b00100000
-#define GDT_ACCESS_RING2            0b01000000
-#define GDT_ACCESS_RING3            0b01100000
+// system descriptor type fields:
+// TODO
 
-#define GDT_FLAGS_16BIT             0b00000000
-#define GDT_FLAGS_32BIT             0b01000000
-#define GDT_FLAGS_BYTE_GRANULARITY  0b00000000
-#define GDT_FLAGS_4K_GRANULARITY    0b10000000
+// privilege level
+#define GDT_ACCESS_RING0               0x00
+#define GDT_ACCESS_RING3               0x60
 
-// Selectors
-#define GDT_CODE_SELECTOR           0x08    // PL=0, Table=GDT, Index=1
-#define GDT_DATA_SELECTOR           0x10    // PL=0, Table=GDT, Index=2
-#define GDT_USER_CODE_SELECTOR      0x1B    // PL=3, Table=GDT, Index=3
-#define GDT_USER_DATA_SELECTOR      0x23    // PL=3, Table=GDT, Index=4
-#define GDT_TSS_SELECTOR            0x2B    // PL=3, Table=GDT, Index=5
+// present flag
+#define GDT_ACCESS_PRESENT             0x80
 
-// There are 3 GDT entries (gdt.c)
+// --- GDT flags bitfields
+
+// default operation size flag
+#define GDT_FLAGS_16BIT                0x00
+#define GDT_FLAGS_32BIT                0x40
+#define GDT_FLAGS_BYTE_GRANULARITY     0x00
+#define GDT_FLAGS_4K_GRANULARITY       0x80
+
+// --- TSS descriptor flags
+#define GDT_ACCESS_TSS                 0x09
+#define GDT_ACCESS_TSS_BUSY            0x02
+
+// simple static GDT
 #define NUM_GDT_ENTRIES 6
+#define GDT_CODE_SELECTOR              0x08    // PL=0, Table=GDT, Index=1
+#define GDT_DATA_SELECTOR              0x10    // PL=0, Table=GDT, Index=2
+#define GDT_USER_CODE_SELECTOR         0x1B    // PL=3, Table=GDT, Index=3
+#define GDT_USER_DATA_SELECTOR         0x23    // PL=3, Table=GDT, Index=4
+#define GDT_TSS_SELECTOR               0x2B    // PL=3, Table=GDT, Index=5
 
 extern struct GDTEntry GDT[NUM_GDT_ENTRIES];
 extern struct GDTDescriptor GDTPointer;

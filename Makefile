@@ -10,7 +10,7 @@ OUT_IMG := $(IMGDIR)/disk.img
 IMG_COPY := $(IMGDIR)/disk_copy.img
 
 # flags
-CFLAGS := -ffreestanding -Wall -Wextra -Wpedantic -std=gnu11 -O3
+CFLAGS := -ffreestanding -Wall -Wextra -Wpedantic -std=gnu17 -O3
 LINK_FLAGS := -ffreestanding -nostdlib -lgcc -Xlinker -Map=$(BUILDDIR)/kernel.map
 KERNEL_LINK_FLAGS := -Xlinker -Map=$(BUILDDIR)/kernel.map
 
@@ -21,7 +21,7 @@ KERNEL := $(BUILDDIR)/kernel/kernel.bin
 
 # object files
 _C_OBJ_FILES := main.o terminal.o gdt.o idt.o exception.o pic.o irq.o physalloc.o paging.o
-_ASM_OBJ_FILES := init.o ioport.o gdt.o idt.o exception.o irq.o paging.o tss.o usermode.o
+_ASM_OBJ_FILES := init.o ioport.o gdt.o idt.o exception.o irq.o paging.o tss.o 
 _BOOTLOADER_OBJ_FILES := bootloader.o a20.o e820.o pmode.o
 
 C_OBJ_FILES = $(patsubst %,$(BUILDDIR)/kernel/c/%,$(_C_OBJ_FILES))

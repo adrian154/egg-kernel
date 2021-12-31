@@ -98,11 +98,11 @@ load_kernel:
     int 0x13
     jc .error
 
-    mov ax, 1
+    xor ax, ax
     ret
 
 .error:
-    xor ax, ax
+    mov ax, 1
     ret
 
 ; structure that tells the BIOS what and where to read

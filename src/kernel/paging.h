@@ -8,31 +8,31 @@
 #define KERNEL_RESERVED_MAX 0x04000000
 
 // Bitmasks to manipulate page directories and tables
-#define PDE_PRESENT         0b00000001
-#define PDE_NOT_PRESENT     0b00000000
-#define PDE_READ_WRITE      0b00000010
-#define PDE_READ_ONLY       0b00000000
-#define PDE_USER            0b00000100
-#define PDE_SUPERVISOR      0b00000000
-#define PDE_WRITETHROUGH    0b00001000
-#define PDE_WRITEBACK       0b00000000
-#define PDE_CACHE_DISABLED  0b00010000
-#define PDE_CACHE_ENABLED   0b00000000
-#define PDE_SIZE_4M         0b10000000
-#define PDE_SIZE_4K         0b00000000
+#define PDE_PRESENT         0x01
+#define PDE_NOT_PRESENT     0x00
+#define PDE_READ_WRITE      0x02
+#define PDE_READ_ONLY       0x00
+#define PDE_USER            0x04
+#define PDE_SUPERVISOR      0x00
+#define PDE_WRITETHROUGH    0x08
+#define PDE_WRITEBACK       0x00
+#define PDE_CACHE_DISABLED  0x10
+#define PDE_CACHE_ENABLED   0x00
+#define PDE_SIZE_4M         0x80
+#define PDE_SIZE_4K         0x00
 
-#define PTE_PRESENT         0b00000001
-#define PTE_NOT_PRESENT     0b00000000
-#define PTE_READ_WRITE      0b00000010
-#define PTE_READ_ONLY       0b00000000
-#define PTE_USER            0b00000100
-#define PTE_SUPERVISOR      0b00000000
-#define PTE_WRITETHROUGH    0b00001000
-#define PTE_WRITEBACK       0b00000000
-#define PTE_CACHE_DISABLED  0b00010000
-#define PTE_CACHE_ENABLED   0b00000000
+#define PTE_PRESENT         0x01
+#define PTE_NOT_PRESENT     0x00
+#define PTE_READ_WRITE      0x02
+#define PTE_READ_ONLY       0x00
+#define PTE_USER            0x04
+#define PTE_SUPERVISOR      0x00
+#define PTE_WRITETHROUGH    0x08
+#define PTE_WRITEBACK       0x00
+#define PTE_CACHE_DISABLED  0x10
+#define PTE_CACHE_ENABLED   0x00
 
-// Bitmasks to help with extracting page bits
+// bitmasks to help with splitting apart addresses
 #define ADDR_HI10_MASK      0xFFC00000
 #define ADDR_MID10_MASK     0x3FF000
 #define ADDR_LOW12_MASK     0xFFF

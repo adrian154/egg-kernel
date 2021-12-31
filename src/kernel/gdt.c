@@ -1,61 +1,62 @@
 #include "gdt.h"
 #include "string.h"
 
-// Set up a new GDT that lays out a flat 4G address space
-// This is necessary since the old GDT may be overwritten
+/*
+ * For simplicity, egg-kernel only uses paging for memory management.
+ * However, segmentation is always enabled and it comes *before* paging, so we still need to set it up.
+ * This code creates a few 'bare minimum' segments that let us access a flat 4G memory space.
+ */
 
-// 3 GDT entries:
-// 1 null entry (required)
-// 2 ring 0 entries (code/data segment)
 struct GDTEntry GDT[NUM_GDT_ENTRIES];
 struct TSSEntry kernelTSSEntry;
 struct GDTDescriptor GDTPointer;
 
-// Add entry to GDT
+// add entry to GDT
 void addGDTEntry(int index, uint32_t base, uint32_t limit, uint8_t access, uint8_t flags) {
 
-    // Set up base address
-    GDT[index].baseLow = base & 0xFFFF;                     // Lower 16 bits
-    GDT[index].baseMiddle = (base >> 16) & 0xFF;            // Middle 8 bits
-    GDT[index].baseHigh = (base >> 24) & 0xFF;              // Upper 8 bits
+    // set up segment base address
+    GDT[index].baseLow = base & 0xFFFF;             // Lower 16 bits
+    GDT[index].baseMiddle = (base >> 16) & 0xFF;    // Middle 8 bits
+    GDT[index].baseHigh = (base >> 24) & 0xFF;      // Upper 8 bits
 
-    // Also populate limit
-    // (Limit is only 20 bits in GDT; you need 4K (2^12) granularity to fill the full 32-bit 4G address space)
-    GDT[index].limitLow = (limit & 0xFFFF);                 // Lower 16 bits
-    GDT[index].flagsAndLimit = ((limit >> 16) & 0x0F);      // Upper 4 bits
+    // set up segment limit
+    // because the GDT only has 20 bits for the limit address, we need 2^12 = 4K bytes of granularity to fill the full 4GB address space
+    limit >>= 12;
+    GDT[index].limitLow = limit & 0xFFFF;               // Lower 16 bits
+    GDT[index].flagsAndLimit = (limit >> 16) & 0x0F;    // Upper 4 bits
 
-    // Finally, access/flags
+    // fill in the other bitfields
     GDT[index].access = access;
-    GDT[index].flagsAndLimit |= (flags & 0xF0);
+    GDT[index].flagsAndLimit |= flags & 0xF0;
 
 }
 
 // Set up the GDT
 void setupGDT(struct EnvironmentData *envData) {
 
-    // The size field in the GDT descriptor is subtracted by 1
-    // This is because a uint16_t can only store 0..65535 but the max size of a GDT is 65536
+    // the size field in the GDT descriptor is subtracted by 1
+    // this is because a uint16_t can only store 0..65535 but the max size of a GDT is 65536
     GDTPointer.offset = (uint32_t)&GDT;
     GDTPointer.size = sizeof(struct GDTEntry) * NUM_GDT_ENTRIES - 1;
 
-    // First, the null descriptor
+    // null descriptor (required by processor)
     addGDTEntry(0, 0, 0, 0, 0);
 
-    // Next, the kernel code segment
+    // kenel code segment
     addGDTEntry(
         1,
         0x00000000,
         0xFFFFFFFF,
-        GDT_ACCESS_PRESENT | GDT_ACCESS_CODE_OR_DATA | GDT_ACCESS_EXECUTABLE | GDT_CODE_SEG_READABLE | GDT_ACCESS_RING0,
+        GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_CODE_SEGMENT,
         GDT_FLAGS_4K_GRANULARITY | GDT_FLAGS_32BIT
     );
 
-    // Kernel data segment
+    // kernel data segment
     addGDTEntry(
         2,
         0x00000000,
         0xFFFFFFFF,
-        GDT_ACCESS_PRESENT | GDT_ACCESS_CODE_OR_DATA | GDT_DATA_SEG_WRITEABLE | GDT_ACCESS_RING0,
+        GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_DATA_SEGMENT,
         GDT_FLAGS_4K_GRANULARITY | GDT_FLAGS_32BIT
     );
 
@@ -64,7 +65,7 @@ void setupGDT(struct EnvironmentData *envData) {
         3,
         0x00000000,
         0xFFFFFFFF,
-        GDT_ACCESS_PRESENT | GDT_ACCESS_CODE_OR_DATA | GDT_ACCESS_EXECUTABLE | GDT_CODE_SEG_READABLE | GDT_ACCESS_RING3,
+        GDT_ACCESS_PRESENT | GDT_ACCESS_RING3 | GDT_ACCESS_CODE_SEGMENT,
         GDT_FLAGS_4K_GRANULARITY | GDT_FLAGS_32BIT
     );
 
@@ -73,7 +74,7 @@ void setupGDT(struct EnvironmentData *envData) {
         4,
         0x00000000,
         0xFFFFFFFF,
-        GDT_ACCESS_PRESENT | GDT_ACCESS_CODE_OR_DATA | GDT_DATA_SEG_WRITEABLE | GDT_ACCESS_RING3,
+        GDT_ACCESS_PRESENT | GDT_ACCESS_RING3 | GDT_ACCESS_DATA_SEGMENT,
         GDT_FLAGS_4K_GRANULARITY | GDT_FLAGS_32BIT
     );
 
@@ -85,23 +86,18 @@ void setupGDT(struct EnvironmentData *envData) {
         (uint32_t)&kernelTSSEntry,
         sizeof(kernelTSSEntry) - 1,
         GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_TSS,
-        GDT_FLAGS_BYTE_GRANULARITY
+        GDT_FLAGS_BYTE_GRANULARITY // our TSS entry isn't 4K aligned, so use byte granularity
     );
 
-    // Set up TSS entry
-    // Set to zero to avoid issues
+    // set up kernel TSS 
     memset(&kernelTSSEntry, 0, sizeof(struct TSSEntry));
-    kernelTSSEntry.SS0 = GDT_DATA_SELECTOR; // The kernel's stack segment
-    setKernelStack(envData->interruptStack);
 
-    // Tell CPU about our new GDT
+    // when an interrupt occurs, the CPU restores the kernel stack based on the values stored in the TSS
+    kernelTSSEntry.SS0 = GDT_DATA_SELECTOR;
+    kernelTSSEntry.ESP0 = envData->interruptStack;
+
+    // tell the CPU to use the new GDT + TSS
     installGDT();
     installTSS();
 
-}
-
-// The CPU looks at the TSS to restore the kernel stack once an interrupt occurs
-// Specifically, it sets [SS:ESP] to [TSSEnt.SS0, TSS]
-void setKernelStack(uint32_t stack) {
-    kernelTSSEntry.ESP0 = stack;
 }

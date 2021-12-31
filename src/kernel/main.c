@@ -59,12 +59,12 @@ void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uin
     
     // Copy passed envData into a new envData on the stack since the old one is lying around in free memory that may be overwritten
     struct EnvironmentData envData;
-    memcpy(envDataOld, &envData, sizeof(struct EnvironmentData));    
+    memcpy(&envData, envDataOld, sizeof(struct EnvironmentData));    
 
     // Do the same for the memory map since it too is in potentially free memory
     // Unfortunately a VLA must be used here, but it's probably fine...
     struct MemoryMapEntry newmmap[envData.numMemoryMapEntries];
-    memcpy(envData.memoryMap, newmmap, sizeof(struct MemoryMapEntry) * envData.numMemoryMapEntries);
+    memcpy(newmmap, envData.memoryMap, sizeof(struct MemoryMapEntry) * envData.numMemoryMapEntries);
 
     // Update envdata entry, since the memory map has moved
     envData.memoryMap = newmmap;
@@ -89,8 +89,6 @@ void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uin
 
     // Print debug info
     printEnvData(&envData);
-
-    testEnterUsermode();
 
     // infinite loop so CPU doesn't start executing junk
     for(;;) {

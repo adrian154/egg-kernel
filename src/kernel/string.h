@@ -13,22 +13,20 @@ static inline unsigned int strlen(const char *str) {
     return length;
 }
 
-static inline void memset(void *ptr, uint8_t value, size_t size) {
-    uint8_t *ptrByte = (uint8_t *)ptr;
+static inline void memset(void *src, uint8_t value, size_t size) {
+    uint8_t *srcPtr = (uint8_t *)src;
     for(size_t i = 0; i < size; i++) {
-        ptrByte[i] = value;
+        srcPtr[i] = value;
     }
 }
 
 // syntax is not standard, but i think it makes more sense like this
-static inline void memcpy(void *src, void *dest, size_t size) {
-
+static inline void memcpy(void *dest, void *src, size_t size) {
     uint8_t *srcPtr = (uint8_t *)src;
     uint8_t *destPtr = (uint8_t *)dest;
     for(size_t i = 0; i < size; i++) {
         destPtr[i] = srcPtr[i];
     }
-
 }
 
 #endif

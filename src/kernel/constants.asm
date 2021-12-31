@@ -1,5 +1,4 @@
 ; Constants used in assembly files
-; DO NOT PUT ACTUAL CODE HERE AS IT WILL CAUSE TROUBLE
 
 %ifndef __CONSTANTS
 %define __CONSTANTS

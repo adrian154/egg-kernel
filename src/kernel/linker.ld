@@ -29,7 +29,6 @@ SECTIONS {
 
     /* Add padding to placate VirtualBox and bochs */
     .padding : {
-        BYTE(0xAA);
         . = ALIGN(512);
     } =0xEE
 
