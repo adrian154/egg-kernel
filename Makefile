@@ -30,15 +30,15 @@ ASM_OBJ_FILES = $(patsubst %,$(BUILDDIR)/kernel/asm/%,$(_ASM_OBJ_FILES))
 BOOTLOADER_OBJ_FILES = $(patsubst %,$(BUILDDIR)/bootloader/%,$(_BOOTLOADER_OBJ_FILES))
 
 # declare a couple targets so they don't get overwritten by files
-.PHONY: eggkernel clean
+.PHONY: os-images clean
 
 # clean, build image, copy image
-eggkernel: clean $(OUT_IMG)
+os-images: clean $(OUT_IMG)
 	cp $(OUT_IMG) $(IMG_COPY)
 	qemu-img convert -O vmdk $(OUT_IMG) $(VMDK_IMG)
 
 # assemble OS components into a flat image
-$(OUT_IMG): $(BOOTSECTOR) $(BOOTLOADER) $(KERNEL)
+$(OUT_IMG): clean $(BOOTSECTOR) $(BOOTLOADER) $(KERNEL)
 	dd if=$(BOOTSECTOR) of=$@
 	dd if=$(BOOTLOADER) of=$@ seek=1 bs=512
 	dd if=$(KERNEL) of=$@ seek=3 bs=512
