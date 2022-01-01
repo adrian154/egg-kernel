@@ -83,6 +83,7 @@ print:
     ret
 
 ; load the kernel
+; returns 0 on failure, 1 on success
 load_kernel:
 
     ; check if the LBA extensions for INT 0x13 exist
@@ -98,11 +99,11 @@ load_kernel:
     int 0x13
     jc .error
 
-    xor ax, ax
+    mov ax, 1
     ret
 
 .error:
-    mov ax, 1
+    xor ax, ax
     ret
 
 ; structure that tells the BIOS what and where to read

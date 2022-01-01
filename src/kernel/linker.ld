@@ -27,6 +27,11 @@ SECTIONS {
         *(.bss)
     }
 
+    .padding : {
+        BYTE(0xFF);
+        . = ALIGN(512);
+    } = 0xFF
+
 }
 
 kernelPhysicalEnd = .;

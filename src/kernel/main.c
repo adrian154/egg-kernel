@@ -33,7 +33,7 @@ void setupEarly(struct EnvironmentData *envData) {
 void printMemoryMap(struct EnvironmentData *envData) {
 
     struct MemoryMapEntry *mmapEnt = envData->memoryMap;
-    for(int i = 0; i < envData->numMemoryMapEntries; i++) {
+    for(uint32_t i = 0; i < envData->numMemoryMapEntries; i++) {
         print("base=0x"); printHexLong(mmapEnt->base);
         print(", length="); printHexLong(mmapEnt->length);
         print(", type="); printHexByte(mmapEnt->type);

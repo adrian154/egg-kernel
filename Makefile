@@ -30,12 +30,14 @@ ASM_OBJ_FILES = $(patsubst %,$(BUILDDIR)/kernel/asm/%,$(_ASM_OBJ_FILES))
 BOOTLOADER_OBJ_FILES = $(patsubst %,$(BUILDDIR)/bootloader/%,$(_BOOTLOADER_OBJ_FILES))
 
 # declare a couple targets so they don't get overwritten by files
-.PHONY: os-images clean
+.PHONY: flat vmdk clean
 
 # clean, build image, copy image
-os-images: clean $(OUT_IMG)
+flat: $(OUT_IMG)
 	cp $(OUT_IMG) $(IMG_COPY)
-	qemu-img convert -O vmdk $(OUT_IMG) $(VMDK_IMG)
+	
+vmdk: $(OUT_IMG)
+	VBoxManage convertfromraw $(OUT_IMG) $(VMDK_IMG) --format VMDK --uuid "a3a4a2ff-0512-4099-a7d2-c20ba3799a92"
 
 # assemble OS components into a flat image
 $(OUT_IMG): clean $(BOOTSECTOR) $(BOOTLOADER) $(KERNEL)
@@ -69,5 +71,5 @@ $(KERNEL): $(C_OBJ_FILES) $(ASM_OBJ_FILES)
 
 clean:
 	rm -rf $(BUILDDIR)
-	#rm $(IMGDIR)/*
+	rm $(IMGDIR)/*
 	mkdir -p $(BUILDDIR)/kernel/c $(BUILDDIR)/kernel/asm $(BUILDDIR)/bootloader $(IMGDIR)
