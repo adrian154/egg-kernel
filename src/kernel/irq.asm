@@ -2,14 +2,12 @@
 
 %include "constants.asm"
 
-; The kernel remaps the PIC so that IRQs 0..16 trigger interrupts 32..48
-; There are 16 IRQ handlers that jump to a common stub, which sets up the environment for the C IRQ handler
-; The C IRQ handling code dispatches another IRQ handler for that specific IRQ (irq.c)
+; Here, 16 IRQ handlers are defined, which jump to a common stub that passes the IRQ to the kernel.
+; C functions can't directly be used as interrupt handlers. The compiler is oblivious to the environment and tends to annihilate the stack.
+; (Technically, you can use GCC's interrupt attribute, but that runs the risk of unleashing dark spirits upon the world.)
+; Each IRQ has its own subroutine because it's the easiest way to tell *which* IRQ the code is being executed for. We could ask the PIC, but it complicates things slightly. 
 
-; 2nd half of the IRQ handler, in C
 EXTERN mainIRQHandler
-
-; Expose symbols so they can be put into the IDT by C code
 GLOBAL irq0
 GLOBAL irq1
 GLOBAL irq2
@@ -29,71 +27,71 @@ GLOBAL irq15
 
 ; IRQ handlers
 irq0:
-    push DWORD 32
+    push DWORD 0
     jmp commonIRQHandler
 irq1:
-    push DWORD 33
+    push DWORD 1
     jmp commonIRQHandler
 irq2:
-    push DWORD 34
+    push DWORD 2
     jmp commonIRQHandler
 irq3:
-    push DWORD 35
+    push DWORD 3
     jmp commonIRQHandler
 irq4:
-    push DWORD 36
+    push DWORD 4
     jmp commonIRQHandler
 irq5:
-    push DWORD 37
+    push DWORD 5
     jmp commonIRQHandler
 irq6:
-    push DWORD 38
+    push DWORD 6
     jmp commonIRQHandler
 irq7:
-    push DWORD 39
+    push DWORD 7
     jmp commonIRQHandler
 irq8:
-    push DWORD 40
+    push DWORD 8
     jmp commonIRQHandler
 irq9:
-    push DWORD 41
+    push DWORD 9
     jmp commonIRQHandler
 irq10:
-    push DWORD 42
+    push DWORD 10
     jmp commonIRQHandler
 irq11:
-    push DWORD 43
+    push DWORD 11
     jmp commonIRQHandler
 irq12:
-    push DWORD 44
+    push DWORD 12
     jmp commonIRQHandler
 irq13:
-    push DWORD 45
+    push DWORD 13
     jmp commonIRQHandler
 irq14:
-    push DWORD 46
+    push DWORD 14
     jmp commonIRQHandler
 irq15:
-    push DWORD 47
+    push DWORD 15
     jmp commonIRQHandler
 
 commonIRQHandler:
 
-    ; Save registers - see exception.asm
+    ; save registers
     pusha
     push ds
     push es
     push fs
     push gs
 
-    ; Load ring0 data segment selector
+    ; load ring0 segments
     mov ax, DATA_SEG
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
 
-    ; Pass ESP to IRQHandler() since we've effectively constructed an IRQFrame on stack
+    ; pass stack pointer to mainIRQHandler
     mov eax, esp
     push eax
 
@@ -101,7 +99,7 @@ commonIRQHandler:
     mov eax, mainIRQHandler
     call eax
 
-    ; Restore registers
+    ; restore registers
     pop eax
     pop gs
     pop fs
@@ -109,8 +107,8 @@ commonIRQHandler:
     pop ds
     popa
 
-    ; Get rid of pushed interrupt number
+    ; get rid of the pushed IRQ#
     add esp, 4
     
-    ; CPU does the rest of the cleanup :)
+    ; let CPU restore the remaining registers
     iret

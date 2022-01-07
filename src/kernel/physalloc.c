@@ -1,8 +1,8 @@
 #include "physalloc.h"
+#include "string.h"
 #include "init.h"
 #include "mmap.h"
-#include "string.h"
-#include "terminal.h"
+#include "print.h"
 
 // The physical memory allocator allocates physical memory with 4K granularity.
 // Physical pages cannot be immediately used, they need to be mapped first (paging.c)
@@ -78,7 +78,7 @@ void setupPhysicalAlloc(struct EnvironmentData *envData) {
             uint32_t startPage = ~(base32 & 0xFFF) ? (base32 >> 12) : (base32 >> 12) + 1;
             uint32_t endPage = limit32 >> 12;
             
-            print("startpage="); printHexInt(startPage); print(", endpage="); printHexInt(endPage); putChar('\n');
+            printf("free range: startpage=0x%xd, endpage=0x%xd\n", startPage, endPage);
 
             for(uint32_t j = startPage; j <= endPage; j++) {
                 iFreePage(j);

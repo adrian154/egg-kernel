@@ -1,11 +1,14 @@
 build/
 img/
 
+notes.md
+
 # various trash files
 .DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
+.vscode
 ethumbs.db
 Thumbs.db

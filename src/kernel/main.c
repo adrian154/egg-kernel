@@ -1,19 +1,20 @@
-#include "kernel.h"
-#include "terminal.h"
-#include "gdt.h"
-#include "idt.h"
 #include "exception.h"
 #include "interrupt.h"
-#include "irq.h"
-#include "init.h"
-#include "mmap.h"
 #include "physalloc.h"
+#include "terminal.h"
+#include "kernel.h"
 #include "string.h"
 #include "paging.h"
+#include "print.h"
+#include "init.h"
+#include "mmap.h"
+#include "gdt.h"
+#include "idt.h"
+#include "irq.h"
 
 void setupEarly(struct EnvironmentData *envData) {
 
-    initTerminal();
+    clearTerminal();
     print("egg kernel started\n");
 
     setupGDT(envData);
@@ -34,25 +35,18 @@ void printMemoryMap(struct EnvironmentData *envData) {
 
     struct MemoryMapEntry *mmapEnt = envData->memoryMap;
     for(uint32_t i = 0; i < envData->numMemoryMapEntries; i++) {
-        print("base=0x"); printHexLong(mmapEnt->base);
-        print(", length="); printHexLong(mmapEnt->length);
-        print(", type="); printHexByte(mmapEnt->type);
-        print(", ACPI=0x");
-        printHexByte(mmapEnt->ACPIAttributes);
-        putChar('\n');
-        mmapEnt += 1;
+        printf("base=0x%xq, length=0x%xq, type=%d, ACPI=0x%xb\n", mmapEnt->base, mmapEnt->length, mmapEnt->type, mmapEnt->ACPIAttributes);
+        mmapEnt++;
     }
 
 }
 
 void printEnvData(struct EnvironmentData *envData) {
-
-    print("[envdata] disk number = 0x"); printHexByte(envData->diskNumber);
-    print("\n[envdata] kernel physical start  = 0x"); printHexInt(envData->kernelPhysicalStart);
-    print("\n[envdata] kernel physical end    = 0x"); printHexInt(envData->kernelPhysicalEnd);
-    print("\n[envdata] bitmap physical end    = 0x"); printHexInt(envData->bitmapPhysicalEnd);
-    print("\n[envdata] kernel interrupt stack = 0x"); printHexInt(envData->interruptStack);
-
+    printf("disk number = 0x%xb\n", envData->diskNumber);
+    printf("kernel physical start  = 0x%xd\n", envData->kernelPhysicalStart);
+    printf("kernel physical end    = 0x%xd\n", envData->kernelPhysicalEnd);
+    printf("bitmap physical end    = 0x%xd\n", envData->bitmapPhysicalEnd);
+    printf("kernel interrupt stack = 0x%xd\n", envData->interruptStack);
 }
 
 void cmain(struct EnvironmentData *envDataOld, uint32_t kernelPhysicalStart, uint32_t kernelPhysicalEnd, uint32_t interruptStack) {

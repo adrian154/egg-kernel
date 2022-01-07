@@ -27,6 +27,10 @@ start:
     ; save disk number that was pushed by bootsector
     mov [envdata_disknumber], dx
 
+    ; switch to text mode
+    mov ax, 0x03    ; AL = mode 3, 80x25 16-color text
+    int 0x10        ; INT 0x10 AH=0x00: set graphics mode
+
     ; Print a quick welcome message :)
     mov si, welcome_message
     call print

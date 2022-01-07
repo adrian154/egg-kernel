@@ -72,13 +72,15 @@ void setupIRQs() {
 // Dispatches an IRQ-specific handler
 void mainIRQHandler(struct IRQFrame *frame) {
 
-    IRQHandler handler = IRQHandlers[frame->interruptNumber - 32];
+    // TODO: verify with the PIC that the IRQ is actually being serviced to properly handle spurious interrupts
+
+    IRQHandler handler = IRQHandlers[frame->IRQNumber];
     if(handler != NULL) {
         handler(frame);
     }
 
-    // If the IRQ was on interrupts 8-15 (remapped to 40-47), we need to send EOI to the slave PIC
-    if(frame->interruptNumber > 39) {
+    // If the IRQ was on interrupts 8-15, we need to send EOI to the slave PIC
+    if(frame->IRQNumber >= 8) {
         outb(PIC_SLAVE_COMMAND, PIC_EOI);
     }
 
