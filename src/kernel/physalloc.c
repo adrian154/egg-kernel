@@ -1,133 +1,74 @@
+/*
+ * It's a good idea to do all our physical memory management in one place.
+ * This allocator keeps track of physical memory on a per-page basis.
+ * Internally, the allocator keeps a stack of free pages, so both allocations and frees are O(1).
+ */
 #include "physalloc.h"
 #include "init.h"
 #include "mmap.h"
 #include "string.h"
 #include "terminal.h"
 
-// The physical memory allocator allocates physical memory with 4K granularity.
-// Physical pages cannot be immediately used, they need to be mapped first (paging.c)
-// The virtual memory allocator (virtalloc.c) does this in a small region reserved for the kernel.
+uint32_t *free_pages_stack_base;
+uint32_t *free_pages_stack;
+size_t free_pages_stack_size;
 
-// page-frame bitmap
-uint32_t *pageBitmap;
+void physalloc_init(struct EnvironmentData *envdata) {
 
-// size of the page bitmap in uint32_t's (size in bytes = this x 4)
-size_t pageBitmapSizeU32;
+    /* place the free pages stack somewhere */
+    free_pages_stack_base = NULL; /* FIXME */
+    free_pages_stack = free_pages_stack_base;
 
-// Internal functions to manipulate page bitmap
-static inline void iFreePage(uint32_t pageNumber) {
-    pageBitmap[pageNumber / 32] &= ~((uint32_t)1 << (pageNumber % 32));
-}
-
-static inline void iAllocPage(uint32_t pageNumber) {
-    pageBitmap[pageNumber / 32] |= (uint32_t)1 << (pageNumber % 32);
-}
-
-void setupPhysicalAlloc(struct EnvironmentData *envData) {
-
-    // Utility.
-    uint32_t MAX_U32 = ~0;
-
-    // First, determine how large the memory is in pages by parsing the memory map
-    uint64_t maxFreeAddr = 0;
-
+    /* work through the memory map, pushing free addresses onto the stack */
+    /* we assume the memory map returned by the BIOS is sane, i.e. no overlapping regions, no garbage entries, etc. */
     struct MemoryMapEntry *mmap = (struct MemoryMapEntry *)envData->memoryMap;
-    for(int i = 0; i < envData->numMemoryMapEntries; i++) {
+    for(int i = 0; i < envdata->numMemoryMapEntries; i++) {
+
+        /* only consider memory explicitly marked free as available for use */
         if(mmap->type == MMAP_FREE) {
-            uint64_t limit = mmap->base + mmap->length;
-            if(limit > maxFreeAddr && mmap->base < MAX_U32 && limit < MAX_U32) {
-                maxFreeAddr = limit;
-            } else if(mmap->base < MAX_U32 && limit > MAX_U32) {
-                maxFreeAddr = MAX_U32;
-            }
-        }
-        mmap++;
-    }
 
-    // 1 uint32_t = 4K * 32 bits
-    pageBitmapSizeU32 = maxFreeAddr / (4096 * 32);
-
-    // place bitmap right above kernel, aligned to 4 bytes
-    pageBitmap = (uint32_t *)(envData->kernelPhysicalEnd % 4 == 0 ? envData->kernelPhysicalEnd : envData->kernelPhysicalEnd + 4 - (envData->kernelPhysicalEnd % 4));
-
-    // Set bitmap to all 1's for now
-    // This strategy helps avoid issues with shitty maps reported by e820
-    memset(pageBitmap, 0xFF, pageBitmapSizeU32 * 4);
-
-    // iterate through mmap, "free" up regions that are marked as free
-    mmap = (struct MemoryMapEntry *)envData->memoryMap;
-    for(int i = 0; i < envData->numMemoryMapEntries; i++) {
-        if(mmap->type == MMAP_FREE) {
-            
-            uint64_t base64 = mmap->base;
-            uint64_t limit64 = mmap->base + mmap->length;
-            
-            // If the entire region is above the 32-bit limit, ignore it
-            if(base64 > MAX_U32) {
+            /* ignore entries above 4GiB, we're 32-bit only for now */
+            if(mmap->base + mmap->length > (uint64_t)0xffffffff) {
                 continue;
             }
 
-            // Calculate the effective start/end of the region
-            uint32_t base32 = (uint32_t)base64;
-            uint32_t limit32 = (uint32_t)limit64;
-            if(base64 < MAX_U32 && limit64 > MAX_U32) {
-                limit32 = MAX_U32;
+            /* make sure the start/end addresses are 4KiB aligned; all pages returned by the allocator must be fully free */
+            uint32_t start = mmap->base;
+            uint32_t end = mmap->base + mmap->length;
+            
+            if(!(start & 0xfff)) {
+                start = (start >> 12 + 1) << 12;
             }
 
-            // Ignore partially free pages at the end of each region
-            uint32_t startPage = ~(base32 & 0xFFF) ? (base32 >> 12) : (base32 >> 12) + 1;
-            uint32_t endPage = limit32 >> 12;
-            
-            print("startpage="); printHexInt(startPage); print(", endpage="); printHexInt(endPage); putChar('\n');
+            if(!(end & 0xfff)) {
+                end = end & 0xfffff000;
+            }
 
-            for(uint32_t j = startPage; j <= endPage; j++) {
-                iFreePage(j);
+            /* push pages */
+            for(uint32_t addr = start; addr <= end; addr += 4096) {
+                *(free_pages_stack++) = addr;
             }
 
         }
 
         mmap++;
+
     }
 
-    // mark pages occupied by kernel and the page bitmap as occupied
-    uint32_t start = (envData->kernelPhysicalStart >> 12) + 1;
-    uint32_t end = (uint32_t)pageBitmap + pageBitmapSizeU32 * 4;
-    uint32_t startPage = ~(start & 0xFFF) ? (start >> 12) : (start >> 12) + 1;
-    uint32_t endPage = end >> 12;
-    for(uint32_t i = startPage; i <= endPage; i++) {
-        iAllocPage(i);
-    }
-
-    // fill in envData field
-    envData->bitmapPhysicalEnd = end;
+    /* TODO: mark pages occupied by the kernel and the stack as occupied */
+    /* TODO: set bitmapPhysicalEnd */
+    /* envData->bitmapPhysicalEnd = end; */
 
 }
 
-void *allocPhysPage() {
-
-    for(size_t i = 0; i < pageBitmapSizeU32; i++) {
-        
-        // Check if there are any free pages in the bitmap
-        if(~pageBitmap[i] != 0) {
-
-            // Loop through bits, find free page
-            for(int j = 0; j < 32; j++) {
-                if(!(pageBitmap[i] & ((uint32_t)1 << j))) {
-                    iAllocPage(i * 32 + j);
-                    return (void *)((i * 32 + j) * 4096);
-                }
-            }
-
-        }
-
-    }
-
-    // no pages left (out of memory!)
-    // this is very bad, replace with something else eventually
-    return NULL;
-
+void *physalloc_alloc() {
+    return *(free_pages_stack--);
 }
 
-void freePage(void *page) {
-    iFreePage((uint32_t)page / 4096);
+/* because physalloc_free() simply pushes the page back onto the stack, double-frees are *very* bad */
+/* if a page is double-freed, it may be returned by physalloc_alloc() multiple times */
+void *physalloc_free(void *ptr) {
+    if(ptr != NULL) {
+        *(free_pages_stack++) = (uint32_t)ptr;
+    }
 }
