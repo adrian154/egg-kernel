@@ -20,15 +20,15 @@ struct IDTDescriptor {
 }__attribute__((packed));
 
 // Bitmasks to manipulate IDT fields
-#define IDT_ENTRY_PRESENT           0b10000000
-#define IDT_ENTRY_RING0             0b00000000
-#define IDT_ENTRY_RING1             0b00100000
-#define IDT_ENTRY_RING2             0b01000000
-#define IDT_ENTRY_RING3             0b01100000
-#define IDT_ENTRY_32BIT             0b00001000
-#define IDT_ENTRY_16BIT             0b00000000
-#define IDT_ENTRY_INTERRUPT_GATE    0b00000110
-#define IDT_ENTRY_TRAP_GATE         0b00000111
+#define IDT_ENTRY_PRESENT           0x80
+#define IDT_ENTRY_RING0             0x00
+#define IDT_ENTRY_RING1             0x20
+#define IDT_ENTRY_RING2             0x40
+#define IDT_ENTRY_RING3             0x60
+#define IDT_ENTRY_32BIT             0x08
+#define IDT_ENTRY_16BIT             0x00
+#define IDT_ENTRY_INTERRUPT_GATE    0x06
+#define IDT_ENTRY_TRAP_GATE         0x07
 
 // Our IDT occupies all 256 entries (idt.c)
 extern struct IDTEntry IDT[256];

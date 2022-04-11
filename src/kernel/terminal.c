@@ -1,15 +1,13 @@
 #include "terminal.h"
 #include "ioport.h"
 
-// Note:
-// TECHNICALLY text mode is deprecated,
-// but so is legacy BIOS so that's not really relevant
+// Terminal driver using VGA text mode
 
-// Some terminal globals
+// terminal state
 unsigned int terminalX;
 unsigned int terminalY;
-uint8_t terminalColor;
-uint16_t *terminalBuffer;
+uint8_t terminalColor = FG_WHITE | BG_BLACK;
+uint16_t *terminalBuffer = (uint16_t *)VGA_TEXT_BUFFER_ADDR;
 
 // TODO: Get rid of magic numbers in cursor functions
 // They're VGA registers, but which???
@@ -33,68 +31,67 @@ void disableCursor() {
     outb(0x3D5, 0x20);
 }
 
-void initTerminal() {
-    terminalBuffer = (uint16_t *)TERMINAL_VGA_TEXT_BUFFER_ADDR;
-    resetTerminal();
-}
-
-void resetTerminal() {
-    terminalColor = 0x0F;
-    clearTerminal();
-    terminalX = 0;
-    terminalY = 0;
-}
-
 void clearTerminal() {
-    for(unsigned int x = 0; x < TERMINAL_WIDTH; x++) {
-        for(unsigned int y = 0; y < TERMINAL_HEIGHT; y++) {
-            setChar(x, y, ' ', terminalColor);
+
+    // reset color
+    for(int x = 0; x < TERMINAL_WIDTH; x++) {
+        for(int y = 0; y < TERMINAL_HEIGHT; y++) {
+            setchar(x, y, ' ', terminalColor);
         }
     }
+
+    // move to top
+    terminalX = 0;
+    terminalY = 0;
+
 }
 
-void setChar(unsigned int x, unsigned int y, char character, uint8_t color) {
-    terminalBuffer[y * TERMINAL_WIDTH + x] = makeTextElement(character, color);
+void setchar(unsigned int x, unsigned int y, char character, uint8_t color) {
+    terminalBuffer[y * TERMINAL_WIDTH + x] = (uint16_t)color << 8 | character;
 }
 
-void putChar(char character) {
+void putchar(char character) {
 
-    // If the cursor is offscreen, wrap.
-    if(terminalX == 80) {
-        terminalX = 0;
-        terminalY++;
-    } else if(character == '\r') {
-        // Carriage return doesn't advance to a new line.
-        // This helps display CRLF or LF accurately
-        terminalX = 0;
+    if(character == '\r') {
+        terminalX = 0;  // carriage return: move cursor to start of line
+    } else if(character == '\b') {
+        if(terminalX > 0) {
+            terminalX--;
+        }
     } else if(character == '\n') {
-        terminalX = 0;
-        terminalY++;
+        terminalX = 0;  // do a carriage return anyways, to support both CRLF and LF
+        terminalY++;    // advance to next line
     } else {
-        setChar(terminalX, terminalY, character, terminalColor);
+        setchar(terminalX, terminalY, character, terminalColor);
         terminalX++;
     }
 
-    // Do scroll
-    if(terminalY == 25) {
-        for(unsigned int y = 1; y < TERMINAL_HEIGHT; y++) {
-            for(unsigned int x = 0; x < TERMINAL_WIDTH; x++) {
+    // if the edge of the terminal has been reached, move to the next line
+    if(terminalX >= TERMINAL_WIDTH) {
+        terminalX = 0;
+        terminalY++;
+    }
+
+    // if the bottom of the screen has been reached, scroll upwards
+    if(terminalY >= TERMINAL_HEIGHT) {
+
+        // copy contents up
+        for(int y = 1; y < TERMINAL_HEIGHT; y++) {
+            for(int x = 0; x < TERMINAL_WIDTH; x++) {
                 terminalBuffer[(y - 1) * TERMINAL_WIDTH + x] = terminalBuffer[y * TERMINAL_WIDTH + x];
             }
         }
-        for(unsigned int x = 0; x < TERMINAL_WIDTH; x++) {
-            setChar(x, TERMINAL_HEIGHT - 1, ' ', terminalColor);
-        }
-        terminalY = TERMINAL_HEIGHT - 1;
-    }
 
-    // Update displayed cursor
+        // reset bottommost line
+        for(int x = 0; x < TERMINAL_WIDTH; x++) {
+            setchar(x, TERMINAL_HEIGHT - 1, ' ', terminalColor);
+        }
+
+        terminalY = TERMINAL_HEIGHT - 1;
+
+    }   
+    
+    // update cursor
     moveCursor(terminalX, terminalY);
 
-}
-
-void print(const char *string) {
-    for(const char *str = string; *str != '\0'; str++) {
-        putChar(*str);
-    }    
 }

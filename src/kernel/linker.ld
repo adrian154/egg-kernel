@@ -1,4 +1,4 @@
-OUTPUT_FORMAT("binary")
+OUTPUT_FORMAT(elf32-i386)
 ENTRY(start)
 
 . =  0x00100000;
@@ -27,11 +27,10 @@ SECTIONS {
         *(.bss)
     }
 
-    /* Add padding to placate VirtualBox and bochs */
     .padding : {
-        BYTE(0xAA);
+        BYTE(0xFF);
         . = ALIGN(512);
-    } =0xEE
+    } = 0xFF
 
 }
 

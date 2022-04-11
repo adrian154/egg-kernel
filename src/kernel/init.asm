@@ -19,8 +19,8 @@ start:
     pop eax
 
     ; Set up a stack for the kernel
-    mov ebp, stackBottom
-    mov esp, stackTop
+    mov ebp, kernelStackBottom
+    mov esp, kernelStack
 
     ; Push parameters to the kernel
     ; EAX has a pointer to the environmentData struct
@@ -43,12 +43,10 @@ hang:
 
 SECTION .bss
 
-; Stack for the kernel
+; reserve two stacks for the kernel
 ALIGN 16
-stackBottom:
+kernelStackBottom:
     resb 4096
-stackTop:
-
-; Reserve a smaller stack for use inside of interrupt handlers
-    resb 1024
+kernelStack:
+    resb 4096
 interruptStack:

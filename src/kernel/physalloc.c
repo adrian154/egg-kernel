@@ -4,10 +4,10 @@
  * Internally, the allocator keeps a stack of free pages, so both allocations and frees are O(1).
  */
 #include "physalloc.h"
+#include "string.h"
 #include "init.h"
 #include "mmap.h"
-#include "string.h"
-#include "terminal.h"
+#include "print.h"
 
 uint32_t *free_pages_stack_base;
 uint32_t *free_pages_stack;

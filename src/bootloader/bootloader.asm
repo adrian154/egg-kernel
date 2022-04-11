@@ -27,6 +27,10 @@ start:
     ; save disk number that was pushed by bootsector
     mov [envdata_disknumber], dx
 
+    ; switch to text mode
+    mov ax, 0x03    ; AL = mode 3, 80x25 16-color text
+    int 0x10        ; INT 0x10 AH=0x00: set graphics mode
+
     ; Print a quick welcome message :)
     mov si, welcome_message
     call print
@@ -83,13 +87,14 @@ print:
     ret
 
 ; load the kernel
+; returns 0 on failure, 1 on success
 load_kernel:
 
     ; check if the LBA extensions for INT 0x13 exist
     ; fail if unavailable because I refuse to work with CHS
     call check_int13h_extensions
     test ax, ax
-    je .error
+    jz .error
 
     ; read kernel off disk
     mov ah, 0x42                    ; AH = function number (0x42 = extended read)
@@ -115,6 +120,7 @@ load_kernel:
     dq KERNEL_START_SECTOR 
 
 ; Check if BIOS INT 0x13 extensions are available
+; 1 if available, 0 if not
 check_int13h_extensions:
     mov ah, 0x41                    ; INT 0x13 AH=0x41: check if extensions are available
     mov dx, [envdata_disknumber]    ; DL = disk number

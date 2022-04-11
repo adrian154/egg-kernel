@@ -1,12 +1,9 @@
 #include "exception.h"
-#include "terminal.h"
+#include "print.h"
 #include "idt.h"
 #include "gdt.h"
 
-// The exception handler is triggered when an exception occurs.
-// Currently, it prints out an error message.
-
-// Exception messages
+// exception messages
 const char *exceptionMessages[32] = {
     "Division by Zero",
     "Debug Exception",
@@ -46,49 +43,33 @@ const char *exceptionMessages[32] = {
 // For now, treat everything as fatal since there's only the kernel running and nothing to fall back on
 void exceptionHandler(struct ExceptionFrame *frame) {
 
-    terminalColor = makeColor(TERMINAL_COLOR_RED, TERMINAL_COLOR_BLACK);
-    print("\nException occurred: ");print(exceptionMessages[frame->interruptNumber]);
-    
-    print("\nSegments: DS="); printHexInt(frame->DS);
-    print(", ES="); printHexInt(frame->ES);
-    print(", FS="); printHexInt(frame->FS);
-    print(", GS="); printHexInt(frame->GS);
+    struct InterruptContext ctx = frame->ctx;
+    struct CPUInterruptFrame cpuFrame = frame->cpuFrame;
 
-    print("\nSaved registers: EDI="); printHexInt(frame->EDI); print(", ESI="); printHexInt(frame->ESI); print(", EBP="); printHexInt(frame->EBP); print(", ESP="); printHexInt(frame->ESP);
-    print("\nEBX="); printHexInt(frame->EBX); print(", EDX="); printHexInt(frame->EDX); print(", ECX="); printHexInt(frame->ECX); print(", EAX="); printHexInt(frame->EAX);
-
-    print("\nException info: INT_NO="); printHexInt(frame->interruptNumber); print(", ERR_CODE="); printHexInt(frame->errorCode);
-    
-    print("\nGeneric interrupt info: EFLAGS="); printHexInt(frame->interruptFrame.EFLAGS); print(", CS="); printHexInt(frame->interruptFrame.CS); print(", EIP="); printHexInt(frame->interruptFrame.EIP);
-    print("\nUserSS="); printHexInt(frame->interruptFrame.userSS); print(", UserESP="); printHexInt(frame->interruptFrame.userESP);
+    terminalColor = FG_RED | BG_BLACK;
+    printf("\n!! Exception occurred: %s !!\n\n", exceptionMessages[frame->interruptNumber]);
+    printf("DS=0x%xd, ES=0x%xd, FS=0x%xd, GS=0x%xd\n", ctx.DS, ctx.ES, ctx.FS, ctx.GS);
+    printf("EDI=0x%xd, ESI=0x%xd, EBP=0x%xd, ESP=0x%xd\n", ctx.EDI, ctx.ESI, ctx.EBP, ctx.ESP);
+    printf("EAX=0x%xd, EBX=0x%xd, ECX=0x%xd, EDX=0x%xd\n", ctx.EAX, ctx.EBX, ctx.ECX, ctx.EDX);
+    printf("Exception: INT_NO=%d, ERR_CODE=%xd\n", frame->interruptNumber, frame->errorCode);
+    printf("EFLAGS=0x%xd, CS:EIP=0x%xd:0x%xd\n", cpuFrame.EFLAGS, cpuFrame.CS, cpuFrame.EIP);
+    printf("SS:ESP=0x%xd:0x%xd\n", cpuFrame.userSS, cpuFrame.userESP);
 
     // Special handler for page faults
     if(frame->interruptNumber == PAGE_FAULT_EXCEPTION) {
-
-        putChar('\n');
 
         // When a page fault occurs, CR2 contains the logical address the faulting instruction tried to access
         uint32_t addr;
         __asm__ __volatile__("mov %%cr2, %0" : "=r" (addr) :: "eax");
 
         // The error code on the stack contains information about the type of access
-        if(frame->errorCode & 0b100) {
-            print("user ");
-        } else {
-            print("kernel ");
-        }
-        if(frame->errorCode & 0b010) {
-            print("wrote to ");
-        } else {
-            print("read from ");
-        }
-        if(frame->errorCode & 0b001) {
-            print("a present page");
-        } else {
-            print("a non-present page");
-        }
-
-        print(" at 0x"); printHexInt(addr);
+        printf(
+            "%s %s a %s page at 0x%xd",
+            frame->errorCode & 4 ? "user" : "kernel",
+            frame->errorCode & 2 ? "wrote" : "read",
+            frame->errorCode & 1 ? "present" : "non-present",
+            addr
+        );
 
     }
 
@@ -96,10 +77,8 @@ void exceptionHandler(struct ExceptionFrame *frame) {
 
 }
 
-// When an exception occurs, interrupts 0..31 may be triggered depending on the exception.
-// So, set up 32 ISRs to handle each exception.
+// Set up 32 ISRs to handle exceptions and route them to the C code.
 void setupExceptionHandlers() {
-
     addIDTEntry(0, (uint32_t)isr0, GDT_CODE_SELECTOR, IDT_ENTRY_PRESENT | IDT_ENTRY_RING0 | IDT_ENTRY_32BIT | IDT_ENTRY_INTERRUPT_GATE);
     addIDTEntry(1, (uint32_t)isr1, GDT_CODE_SELECTOR, IDT_ENTRY_PRESENT | IDT_ENTRY_RING0 | IDT_ENTRY_32BIT | IDT_ENTRY_INTERRUPT_GATE);
     addIDTEntry(2, (uint32_t)isr2, GDT_CODE_SELECTOR, IDT_ENTRY_PRESENT | IDT_ENTRY_RING0 | IDT_ENTRY_32BIT | IDT_ENTRY_INTERRUPT_GATE);
@@ -132,5 +111,4 @@ void setupExceptionHandlers() {
     addIDTEntry(29, (uint32_t)isr29, GDT_CODE_SELECTOR, IDT_ENTRY_PRESENT | IDT_ENTRY_RING0 | IDT_ENTRY_32BIT | IDT_ENTRY_INTERRUPT_GATE);
     addIDTEntry(30, (uint32_t)isr30, GDT_CODE_SELECTOR, IDT_ENTRY_PRESENT | IDT_ENTRY_RING0 | IDT_ENTRY_32BIT | IDT_ENTRY_INTERRUPT_GATE);
     addIDTEntry(31, (uint32_t)isr31, GDT_CODE_SELECTOR, IDT_ENTRY_PRESENT | IDT_ENTRY_RING0 | IDT_ENTRY_32BIT | IDT_ENTRY_INTERRUPT_GATE);
-    
 }

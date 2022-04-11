@@ -29,28 +29,14 @@
 // Data on the stack before C exception handler starts working
 struct ExceptionFrame {
     
-    // Also pushed by commonExceptionHandler
-    uint32_t GS;
-    uint32_t FS;
-    uint32_t ES;
-    uint32_t DS;
-
-    // From pusha
-    uint32_t EDI;
-    uint32_t ESI;
-    uint32_t EBP;
-    uint32_t ESP;
-    uint32_t EBX;
-    uint32_t EDX;
-    uint32_t ECX;
-    uint32_t EAX;
+    struct InterruptContext ctx;
 
     // Pushed by each exception handler
     uint32_t interruptNumber;
     uint32_t errorCode;
 
     // Pushed by CPU
-    struct InterruptFrame interruptFrame;    
+    struct CPUInterruptFrame cpuFrame;    
 
 }__attribute__((packed));
 
